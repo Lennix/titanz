@@ -14,17 +14,17 @@ Func ChooseItemType($type, $subtype = "All") ; 1Hand, 2Hand, Offhand, Armor, Fol
 	If Not IsNumber($type) Then $type = GetID("itemtypes", $type)
 
 	D3Click("item_type") ; Open filter
-	D3Click(833, 566+$type*40)
+	D3Click("item_type", $type)
 
 	D3Click("item_subtype") ; Open subfilter
 	D3Click("item_subtype_scrollup", 9) ; Scroll up (reset)
-	D3Click(792, 625+$subtype*40) ; click
+	D3Click("item_subtype", $subtype) ; click
 EndFunc
 
 Func ChooseRarity($rarity)
 	If Not IsNumber($rarity) Then $rarity = GetID("rarity", $rarity)
 	D3Click("rarity") ; Open filter
-	D3Click(833, 735+$rarity*40)
+	D3Click("rarity", $rarity)
 EndFunc
 
 Func ChooseFilter($nr, $type, $subtype, $entry, $value)
@@ -34,7 +34,7 @@ Func ChooseFilter($nr, $type, $subtype, $entry, $value)
 	$max = GetID($type & "_" & $subtype, "Max")
 	$max -= ($nr-1)
 	debug("Entry: " & $entry & " @ Max: " & $max)
-	D3Click(770, 793 + ($nr-1) * 50) ; Open filter
+	D3Click("filter_" & $nr) ; Open filter
 	D3sleep(200)
 	; Search for scrollbar
 	$scrollup = PixelSearch(527, 821 + ($nr-1)*50, 1070, 867+ ($nr-1)*50, 16763272,3)
@@ -49,17 +49,17 @@ Func ChooseFilter($nr, $type, $subtype, $entry, $value)
 		D3Click($scrollup[0], $scrollup[1] + 365, 9*$clicks) ; nach unten scrollen
 		debug("Filter: " & $nr & ", Eintrag: " & $entry & ", Anzahl klicks: " & $clicks)
 	EndIf
-	D3Click(770, 850 + ($nr - 1)*50 + $entry * 40) ; click entry filter
+	D3Click("filter_" & $nr, $entry) ; click entry filter
 	; Click on value
-	D3Click(842, 800 + ($nr - 1)*50)
+	D3Click("filtervalue_" & $nr)
 	D3Send("{BACKSPACE 3}")
 	D3Send($value)
 EndFunc
 
 Func ResetFilter($nr)
-	D3Click(770, 793 + ($nr-1) * 50) ; Open filter
+	D3Click("filter_" & $nr) ; Open filter
 	$scrollup = PixelSearch(527, 821 + ($nr-1)*50, 1070, 867+ ($nr-1)*50, 16763272,3)
-	If @Error Then Return D3Click(770, 793 + ($nr-1) * 50) ; Open filter
+	If @Error Then Return D3Click("filter_" & $nr) ; close filter
 	D3Click($scrollup[0], $scrollup[1], 160) ; scrollup
-	D3Click(770, 850 + ($nr-1) * 50) ; click first entry
+	D3Click("filter_" & $nr, 1) ; Open filter
 EndFunc

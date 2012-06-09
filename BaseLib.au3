@@ -9,7 +9,7 @@ Func mouseinfo()
 	debug($pos[0] & "," & $pos[1] & ":" & PixelGetColor($pos[0], $pos[1]))
 EndFunc
 
-Func D3Click($position, $clicks = 1)
+Func D3Click($position, $subpos = 0, $clicks = 1)
 	If Not IsArray($position) Then
 		Dim $posiArray[3]
 		$posiArray[0] = IniRead("localconf", $position, "x", "")
