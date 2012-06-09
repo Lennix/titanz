@@ -14,20 +14,26 @@ hotkeyset("{F7}","quit")
 #ce		#############		#
 
 Const $configSize = 16
+Const $configDiffSize = 3
+
 Const $color_red = 0xff0000
 Const $color_green = 0x008000
 Const $color_yellow = 0x808000
 
 Global $configProperties[$configSize] = ["Search", "Buyout", "AcceptBuyout", "First ItemType", "Second ItemType", "Rarity", "Stat1_DropDown", "Stat1_Value", "Stat2_DropDown", "Stat2_Value", "Stat3_DropDown", "Stat3_Value", "Stat3_DropDownItem1","Stat3_DropDownItem2", "Stat3_DropDownScrollButton_Top", "Stat3_DropDownScrollButton_Bottom"]
+Global $configDiffProperties[$configDiffSize] = ["DragDownToItem", "ItemToItem", "ScrollToScroll"]
 Global $Ini = "localconf"
 
 Global $configComplete = false
+Global $runtime = False
+
 Global $configProcessPoint = 0
+Global $configEndPoint = $configSize
 Global $configProcessPointLabel = ""
 Global $diffPoint = 0
 Global $diffPosition[4]
 
-Global $runtime = False
+
 
 ;write a point to CONFIG
 Func writeConfigPoint($point)
@@ -43,6 +49,20 @@ Func getYCoord()
 	return $pos[1]
 EndFunc
 
+; 0 -> 1diff; 1 -> 2diff; 2 -> 3diff; 3 -> all diffs
+Func calculateDiff($diff)
+	If $diff < 1 Or $diff == 3 Then
+		$dragDownY = IniRead($Ini, "Stat3_DropDown", "y", 0)
+		IniWrite($Ini, $configDiffProperties[0], "diff", ($diffPosition[0] - $dragDownY))
+	EndIf
+	If ($diff > 0 And $diff < 2) Or $diff == 3 Then
+		IniWrite($Ini, $configDiffProperties[1], "diff",($diffPosition[1] - $diffPosition[0]))
+	EndIf
+	If ($diff > 1 And $diff < 3) Or $diff == 3 Then
+		IniWrite($Ini, $configDiffProperties[2], "diff",($diffPosition[3] - $diffPosition[2]))
+	EndIf
+EndFunc
+
 Func processConfig()
 	If not $configComplete Then
 		Switch $configProcessPoint
@@ -56,21 +76,58 @@ Func processConfig()
 		EndSwitch
 		$configProcessPoint += 1
 		;check if config is complete now
-		If $configProcessPoint < $configSize Then
+		If $configProcessPoint < $configEndPoint Then
 			;config not finished -> change label
 			GUICtrlSetData($configProcessPointLabel, $configProperties[$configProcessPoint])
 		Else
 			;calculate diffs
-			$dragDownY = IniRead($Ini, "Stat3_DropDown", "y", 0)
-			IniWrite($Ini, "DragDownToItem", "diff", ($diffPosition[0] - $dragDownY))
-			IniWrite($Ini, "ItemToItem", "diff",($diffPosition[1] - $diffPosition[0]))
-			IniWrite($Ini, "ScrollToScroll", "diff",($diffPosition[3] - $diffPosition[2]))
+			Switch $configEndPoint
+				Case 12
+					calculateDiff(0)
+				Case 13
+					calculateDiff(1)
+				Case 14
+					If $diffPosition[0] == 0 Then
+						calculateDiff(2)
+					Else
+						calculateDiff(3)
+					EndIf
+			EndSwitch
 			;config is complete
 		    $configComplete = True
 			buildRuntimeGUI(1)
 		EndIf
 	EndIf
 EndFunc
+
+Func checkConfig()
+	$temp = 0
+	$tempId = 0
+	$errorCatched = false
+	For $i = 0 To 14 Step +1
+		switch $i
+			Case 0 to 11
+				$temp = IniRead($Ini, $configProperties[$i], "y", 0)
+			Case 12 To 14
+				$temp = IniRead($Ini, $configDiffProperties[$i + $configDiffSize - $configSize + 1], "diff", 0)
+				If $i == 14 Then
+					$tempId = 15
+				Else
+					$tempId = $i
+				EndIf
+		EndSwitch
+		If $temp == 0 Then
+			If $tempId == 0 Then
+				builtConfigGUI($i, $i)
+			Else
+				builtConfigGUI($tempId - 1, $tempId)
+			EndIf
+		EndIf
+	Next
+	$configComplete = True
+	buildRuntimeGUI(1)
+EndFunc
+
 
 
 #cs		#############		#
@@ -105,7 +162,9 @@ Func stopBotGUI()
 EndFunc
 
 ;CONFIG GUI
-Func builtConfigGUI()
+Func builtConfigGUI($configStartPoint, $cconfigEndPoint)
+	$configProcessPoint = $configStartPoint
+	$configEndPoint = $cconfigEndPoint
 	createGUI()
 	GUICtrlCreateLabel("Welcome to TITAN - Z", 70, 20)
 	GUICtrlCreateLabel("Before you can start u have to do the program configuration", 10, 50)
@@ -135,12 +194,10 @@ EndFunc
 #ce		#############		#
 
 If FileExists($Ini) Then
-	;load CONFIG
-	$configComplete = True
-	buildRuntimeGUI(1)
+	checkConfig()
 Else
 	;start CONFIG
-	builtConfigGUI()
+	builtConfigGUI(0, $configSize)
 EndIf
 
 Func start()
