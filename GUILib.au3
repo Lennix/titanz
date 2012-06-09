@@ -19,7 +19,7 @@ Const $color_red = 0xff0000
 Const $color_green = 0x008000
 Const $color_yellow = 0x808000
 
-Enum $firstItemType, $secondItemType, $rarity, $stat1DropDown, $stat1Value, $stat2DropDown, $stat2Value, $stat3DropDown, $stat3Value, $search, $buyout, $acceptBuyout ;0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11
+Enum $firstItemTypeCONF, $secondItemTypeCONF, $rarityCONF, $stat1DropDownCONF, $stat1ValueCONF, $stat2DropDownCONF, $stat2ValueCONF, $stat3DropDownCONF, $stat3ValueCONF, $searchCONF, $buyoutCONF, $acceptBuyoutCONF ;0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11
 
 Global $configProperties[$configSize] = ["First ItemType", "Second ItemType", "Rarity", "Stat1_DropDown", "Stat1_Value", "Stat2_DropDown", "Stat2_Value", "Stat3_DropDown", "Stat3_Value", "Search", "Buyout", "AcceptBuyout"]
 Global $config[$configSize][$configKeys]
