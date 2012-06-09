@@ -17,7 +17,7 @@ Func ChooseItemType($type, $subtype = "All") ; 1Hand, 2Hand, Offhand, Armor, Fol
 	D3Click("item_type", $type)
 
 	D3Click("item_subtype") ; Open subfilter
-	D3Click("item_subtype_scrollup", 9) ; Scroll up (reset)
+	;D3Click("item_subtype_scrollup", 9) ; Scroll up (reset)
 	D3Click("item_subtype", $subtype) ; click
 EndFunc
 

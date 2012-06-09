@@ -16,7 +16,7 @@ Func D3Click($position, $subpos = 0, $clicks = 1)
 		$posiArray[1] = IniRead("localconf", $position, "y", 0)
 		$position = $posiArray
 	EndIf
-	If $subpos > 0 Then $position[1] += (IniRead("localconf", "diff", $position, 0)*$subpos)
+	If $subpos > 0 Then $position[1] += IniRead("localconf", "diff", "DragDownToItem", 0) + (IniRead("localconf", "diff", "ItemToItem", 0)*$subpos)
 	ControlClick("Diablo III", "", 0 , "left", $clicks, $position[0], $position[1])
 	D3Sleep(500)
 EndFunc
@@ -52,6 +52,7 @@ Func D3Sleep($time)
 EndFunc
 
 Func CheckColor($position)
+	Dim $posiArray[3]
 	$posiArray[0] = IniRead("localconf", $position, "x", 0)
 	$posiArray[1] = IniRead("localconf", $position, "y", 0)
 	Return PixelGetColor($posiArray[0], $posiArray[1]) == IniRead("localconf", $position, "color", 0)
