@@ -53,13 +53,13 @@ EndFunc
 Func calculateDiff($diff)
 	If ($diff < 1 Or $diff == 3) Then
 		$dragDownY = IniRead($Ini, "filter_3", "y", 0)
-		IniWrite($Ini, $configDiffProperties[0], "diff", ($diffPosition[0] - $dragDownY))
+		IniWrite($Ini, "diff", $configDiffProperties[0], ($diffPosition[0] - $dragDownY))
 	EndIf
 	If ($diff > 0 And $diff < 2) Or $diff == 3 Then
-		IniWrite($Ini, $configDiffProperties[1], "diff",($diffPosition[1] - $diffPosition[0]))
+		IniWrite($Ini, "diff", $configDiffProperties[1],($diffPosition[1] - $diffPosition[0]))
 	EndIf
 	If ($diff > 1 And $diff < 3) Or $diff == 3 Then
-		IniWrite($Ini, $configDiffProperties[2], "diff",($diffPosition[3] - $diffPosition[2]))
+		IniWrite($Ini, "diff", $configDiffProperties[2],($diffPosition[3] - $diffPosition[2]))
 	EndIf
 EndFunc
 
