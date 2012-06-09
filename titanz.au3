@@ -35,7 +35,7 @@ $stats[0][0] = "Experience"
 $stats[0][1] = 200
 $stats[1][0] = "Dexterience"
 $stats[1][1] = 200
-;Search("1-Hand", "All", "Rare", $stats, 100000)
+Search("1-Hand", "All", "Rare", $stats, 100000)
 
 $latesttime = 0
 

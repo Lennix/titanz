@@ -18,7 +18,7 @@ Func D3Click($position, $subpos = 0, $clicks = 1)
 	EndIf
 	If $subpos > 0 Then $position[1] += (IniRead("localconf", "diff", $position, 0)*$subpos)
 	ControlClick("Diablo III", "", 0 , "left", $clicks, $position[0], $position[1])
-	D3Sleep(50)
+	D3Sleep(500)
 EndFunc
 
 Func D3Scroll($position, $count, $direction)
