@@ -1,6 +1,7 @@
 #include "NomadMemory.au3"
 #include "ClickLib.au3"
 #include "BaseLib.au3"
+#include "GUILib.au3"
 #include <Array.au3>
 
 #RequireAdmin
@@ -17,6 +18,7 @@ $module = "Diablo III.exe"
 
 $baseadd = _MemoryModuleGetBaseAddress($pid, $module)
 
+#cs
 $max = 0
 
 Dim $armorTypes[128] = ["None", "...", "Attack Speed", "...", "...", "...", "...", "...", "...", "...", "...", "...", "...", "...", "...", "...", "...", "...", "...", "...", "Critical Hit Damage", "Dexterity", "Experience", "Has Sockets", "Hatred Regeneration", "Indestructible", "Intelligence", "Life Steal", "Life after Kill", "Life on Hit", "Life per Spirit Spent", "Mana Regeneration", "Max Arcane Power", "Max Discipline", "Max Fury", "Max Mana", "Min Bleed Damage", "Reduced Level", "Spirit Regeneration", "Strength", "Vitality", "...", "...", "...", "...", "...", "..."]
@@ -27,6 +29,7 @@ For $i = 0 To 127
 	EndIf
 Next
 IniWrite("settings.ini","1-Hand_all", "max", $max)
+#ce
 
 Search("1-Hand", "All", "Rare", "Experience", 200, "Dexterity", 10, "", 0)
 

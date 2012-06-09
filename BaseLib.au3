@@ -9,14 +9,11 @@ Func mouseinfo()
 	debug($pos[0] & "," & $pos[1] & ":" & PixelGetColor($pos[0], $pos[1]))
 EndFunc
 
-Func D3Click($x, $y, $clicks = 1)
-	Dim $position[2]
-	$position[0] = $x
-	$position[1] = $y
+Func D3Click($position, $clicks = 1)
 	If Not IsArray($position) Then
 		Dim $posiArray[3]
-		$posiArray[0] = IniRead("localconf.ini", $position, "x", "")
-		$posiArray[1] = IniRead("localconf.ini", $position, "y", "")
+		$posiArray[0] = IniRead("localconf", $position, "x", "")
+		$posiArray[1] = IniRead("localconf", $position, "y", "")
 		$position = $posiArray
 	EndIf
 	ControlClick("Diablo III", "", 0 , "left", $clicks, $position[0], $position[1])

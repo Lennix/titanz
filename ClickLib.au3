@@ -1,9 +1,9 @@
 Func ScanPages()
-	D3Click(699, 1119) ; search
+	D3Click("search") ; search
 	Dim $items[1][5]
 	While 1
 		If Not GetData($items) Then ExitLoop
-		D3Click(1634, 1093) ; Next page
+		D3Click("next_page") ; Next page
 	WEnd
 	_ArrayDisplay($items)
 EndFunc
@@ -13,17 +13,17 @@ Func ChooseItemType($type, $subtype = "All") ; 1Hand, 2Hand, Offhand, Armor, Fol
 	If Not IsNumber($subtype) Then $subtype = GetID($type, $subtype)
 	If Not IsNumber($type) Then $type = GetID("itemtypes", $type)
 
-	D3Click(833, 510) ; Open filter
+	D3Click("item_type") ; Open filter
 	D3Click(833, 566+$type*40)
 
-	D3Click(833, 570) ; Open subfilter
-	D3Click(833, 626, 9) ; Scroll up (reset)
+	D3Click("item_subtype") ; Open subfilter
+	D3Click("item_subtype_scrollup", 9) ; Scroll up (reset)
 	D3Click(792, 625+$subtype*40) ; click
 EndFunc
 
 Func ChooseRarity($rarity)
 	If Not IsNumber($rarity) Then $rarity = GetID("rarity", $rarity)
-	D3Click(833, 680) ; Open filter
+	D3Click("rarity") ; Open filter
 	D3Click(833, 735+$rarity*40)
 EndFunc
 
