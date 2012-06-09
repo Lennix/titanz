@@ -32,28 +32,34 @@ Func ChooseFilter($nr, $type, $subtype, $entry, $value)
 	;ResetFilter($nr)
 	$entry = GetID($type & "_" & $subtype, $entry)
 	$max = GetID($type & "_" & $subtype, "Max")
+	$max -= ($nr-1)
 	debug("Entry: " & $entry & " @ Max: " & $max)
 	D3Click(770, 793 + ($nr-1) * 50) ; Open filter
+	D3sleep(200)
+	; Search for scrollbar
+	$scrollup = PixelSearch(527, 821 + ($nr-1)*50, 1070, 867+ ($nr-1)*50, 16763272,3)
 	If ($entry > 10) Then ; kann nicht sofort klicken
 		$clicks = Floor(($entry - 10) / 4) + 1
 		If ($entry > $max - 10) Then ; ist ganz hinten
-			$entry = 9 - ($max - $entry)
+			$entry = 10 - ($max - $entry)
 			$clicks = Floor($max / 4) + 1
 		Else
 			$entry = $entry - $clicks*4
 		EndIf
-		D3Click(1000,1217 + ($nr - 1)*50, 9*$clicks) ; nach unten scrollen
+		D3Click($scrollup[0], $scrollup[1] + 365, 9*$clicks) ; nach unten scrollen
 		debug("Filter: " & $nr & ", Eintrag: " & $entry & ", Anzahl klicks: " & $clicks)
 	EndIf
 	D3Click(770, 850 + ($nr - 1)*50 + $entry * 40) ; click entry filter
 	; Click on value
 	D3Click(842, 800 + ($nr - 1)*50)
-	D3Send("{^a}")
+	D3Send("{BACKSPACE 3}")
 	D3Send($value)
 EndFunc
 
 Func ResetFilter($nr)
 	D3Click(770, 793 + ($nr-1) * 50) ; Open filter
-	D3Click(1000, 850 + ($nr-1) * 50, 160)
+	$scrollup = PixelSearch(527, 821 + ($nr-1)*50, 1070, 867+ ($nr-1)*50, 16763272,3)
+	If @Error Then Return D3Click(770, 793 + ($nr-1) * 50) ; Open filter
+	D3Click($scrollup[0], $scrollup[1], 160) ; scrollup
 	D3Click(770, 850 + ($nr-1) * 50) ; click first entry
 EndFunc

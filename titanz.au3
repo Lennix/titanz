@@ -1,5 +1,5 @@
 #include "NomadMemory.au3"
-#include "GUILib.au3"
+#include "ClickLib.au3"
 #include "BaseLib.au3"
 #include <Array.au3>
 
@@ -17,12 +17,18 @@ $module = "Diablo III.exe"
 
 $baseadd = _MemoryModuleGetBaseAddress($pid, $module)
 
+$max = 0
+
 Dim $armorTypes[128] = ["None", "...", "Attack Speed", "...", "...", "...", "...", "...", "...", "...", "...", "...", "...", "...", "...", "...", "...", "...", "...", "...", "Critical Hit Damage", "Dexterity", "Experience", "Has Sockets", "Hatred Regeneration", "Indestructible", "Intelligence", "Life Steal", "Life after Kill", "Life on Hit", "Life per Spirit Spent", "Mana Regeneration", "Max Arcane Power", "Max Discipline", "Max Fury", "Max Mana", "Min Bleed Damage", "Reduced Level", "Spirit Regeneration", "Strength", "Vitality", "...", "...", "...", "...", "...", "..."]
 For $i = 0 To 127
-	If $armorTypes[$i] <> "" And $armorTypes[$i] <> ".." Then IniWrite("settings.ini","1-Hand_all", $armorTypes[$i], $i)
+	If $armorTypes[$i] <> "" Then
+		If $armorTypes[$i] <> "..." Then IniWrite("settings.ini","1-Hand_all", $armorTypes[$i], $i)
+		$max += 1
+	EndIf
 Next
+IniWrite("settings.ini","1-Hand_all", "max", $max)
 
-;Search("1-Hand", "All", "Rare", "Vitality", 200, "Dexterity", 200, "", 0)
+Search("1-Hand", "All", "Rare", "Experience", 200, "Dexterity", 10, "", 0)
 
 $latesttime = 0
 
