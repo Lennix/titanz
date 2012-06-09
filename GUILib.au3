@@ -20,7 +20,7 @@ Const $color_red = 0xff0000
 Const $color_green = 0x008000
 Const $color_yellow = 0x808000
 
-Global $configProperties[$configSize] = ["Search", "Buyout", "AcceptBuyout", "First ItemType", "Second ItemType", "Rarity", "Stat1_DropDown", "Stat1_Value", "Stat2_DropDown", "Stat2_Value", "Stat3_DropDown", "Stat3_Value", "Stat3_DropDownItem1","Stat3_DropDownItem2", "Stat3_DropDownScrollButton_Top", "Stat3_DropDownScrollButton_Bottom"]
+Global $configProperties[$configSize] = ["search", "buyout", "accept_buyout", "item_type", "item_subtype", "rarity", "Stat1_DropDown", "Stat1_Value", "Stat2_DropDown", "Stat2_Value", "Stat3_DropDown", "Stat3_Value", "Stat3_DropDownItem1","Stat3_DropDownItem2", "Stat3_DropDownScrollButton_Top", "Stat3_DropDownScrollButton_Bottom"]
 Global $configDiffProperties[$configDiffSize] = ["DragDownToItem", "ItemToItem", "ScrollToScroll"]
 Global $Ini = "localconf"
 
