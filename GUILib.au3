@@ -38,7 +38,7 @@ Global $diffPosition[4]
 ;write a point to CONFIG
 Func writeConfigPoint($point)
 	$pos = MouseGetPos()
-	Sleep(2000)
+	Sleep(1000)
 	IniWrite($Ini, $configProperties[$point], "x", $pos[0])
 	IniWrite($Ini, $configProperties[$point], "y", $pos[1])
 	IniWrite($Ini, $configProperties[$point], "color", PixelGetColor($pos[0], $pos[1]))
@@ -51,8 +51,8 @@ EndFunc
 
 ; 0 -> 1diff; 1 -> 2diff; 2 -> 3diff; 3 -> all diffs
 Func calculateDiff($diff)
-	If $diff < 1 Or $diff == 3 Then
-		$dragDownY = IniRead($Ini, "Stat3_DropDown", "y", 0)
+	If ($diff < 1 Or $diff == 3) Then
+		$dragDownY = IniRead($Ini, "filter_3", "y", 0)
 		IniWrite($Ini, $configDiffProperties[0], "diff", ($diffPosition[0] - $dragDownY))
 	EndIf
 	If ($diff > 0 And $diff < 2) Or $diff == 3 Then
@@ -86,7 +86,7 @@ Func processConfig()
 					calculateDiff(0)
 				Case 13
 					calculateDiff(1)
-				Case 14
+				Case 16
 					If $diffPosition[0] == 0 Then
 						calculateDiff(2)
 					Else
