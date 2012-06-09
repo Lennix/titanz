@@ -20,19 +20,20 @@ Const $color_red = 0xff0000
 Const $color_green = 0x008000
 Const $color_yellow = 0x808000
 
-Global $configProperties[$configSize] = ["search", "buyout", "accept_buyout", "item_type", "item_subtype", "rarity", "filter_1", "filtervalue_1", "filter_2", "filtervalue_2", "filter_3", "filtervalue_3", "stat3_dropdownwindow_item1","stat3_dropdownwindow_item2", "scrollbartopleft", "scrollbarbottomright"]
+Global $configProperties[$configSize] = ["search", "buyout", "accept_buyout", "item_type", "item_subtype", "rarity", "filter_1", "filtervalue_1", "filter_2", "filtervalue_2", "filter_3", "filtervalue_3", "scrollbartopleft", "scrollbarbottomright", "stat3_dropdownwindow_item1", "stat3_dropdownwindow_item2"]
 Global $configDiffProperties[$configDiffSize] = ["DragDownToItem", "ItemToItem", "ScrollToScroll"]
 Global $Ini = "localconf"
 
-Global $configComplete = false
+Global $configComplete = False
+Global $needConfigCheck = False
 Global $runtime = False
 
 Global $configProcessPoint = 0
+Global $configCheckPoint = 0
 Global $configEndPoint = $configSize
 Global $configProcessPointLabel = ""
 Global $diffPoint = 0
-Global $diffPosition[4]
-
+Global $diffPosition[2]
 
 
 ;write a point to CONFIG
@@ -51,15 +52,20 @@ EndFunc
 
 ; 0 -> 1diff; 1 -> 2diff; 2 -> 3diff; 3 -> all diffs
 Func calculateDiff($diff)
+	;1diff = dragdown to item
 	If ($diff < 1 Or $diff == 3) Then
 		$dragDownY = IniRead($Ini, "filter_3", "y", 0)
-		IniWrite($Ini, "diff", $configDiffProperties[0], ($diffPosition[0] - $dragDownY))
+		IniWrite($Ini, $configDiffProperties[0], "diff", ($diffPosition[0] - $dragDownY))
 	EndIf
+	;2diff = item to item
 	If ($diff > 0 And $diff < 2) Or $diff == 3 Then
-		IniWrite($Ini, "diff", $configDiffProperties[1],($diffPosition[1] - $diffPosition[0]))
+		IniWrite($Ini, $configDiffProperties[1], "diff",($diffPosition[1] - $diffPosition[0]))
 	EndIf
+	;3diff = scroll to scroll
 	If ($diff > 1 And $diff < 3) Or $diff == 3 Then
-		IniWrite($Ini, "diff", $configDiffProperties[2],($diffPosition[3] - $diffPosition[2]))
+		$scrollTopY = IniRead($Ini, "scrollbartopleft", "y", 0)
+		$scrollBottomY = IniRead($Ini, "scrollbarbottomright", "y", 0)
+		IniWrite($Ini, $configDiffProperties[2], "diff",($scrollBottomY - $scrollTopY))
 	EndIf
 EndFunc
 
@@ -67,7 +73,7 @@ Func processConfig()
 	If not $configComplete Then
 		Switch $configProcessPoint
 			;get difference positions
-			Case 12 To 15
+			Case 14 To 15
 				$diffPosition[$diffPoint] = getYCoord()
 				$diffPoint += 1
 			;write normal points
@@ -82,9 +88,9 @@ Func processConfig()
 		Else
 			;calculate diffs
 			Switch $configEndPoint
-				Case 12
-					calculateDiff(0)
 				Case 13
+					calculateDiff(0)
+				Case 14
 					calculateDiff(1)
 				Case 16
 					If $diffPosition[0] == 0 Then
@@ -93,39 +99,50 @@ Func processConfig()
 						calculateDiff(3)
 					EndIf
 			EndSwitch
-			;config is complete
-		    $configComplete = True
-			buildRuntimeGUI(1)
+			If not $needConfigCheck Then
+				;config is complete
+				$configComplete = True
+				buildRuntimeGUI(1)
+			Else
+				checkConfig(True)
+			EndIf
 		EndIf
 	EndIf
 EndFunc
 
-Func checkConfig()
+Func checkConfig($continueCheck)
 	$temp = 0
 	$tempId = 0
-	$errorCatched = false
-	For $i = 0 To 14 Step +1
-		switch $i
+	While ($configCheckPoint < 14 And $continueCheck)
+		switch $configCheckPoint
 			Case 0 to 11
-				$temp = IniRead($Ini, $configProperties[$i], "y", 0)
+				$temp = IniRead($Ini, $configProperties[$configCheckPoint], "y", 0)
 			Case 12 To 14
-				$temp = IniRead($Ini, $configDiffProperties[$i + $configDiffSize - $configSize + 1], "diff", 0)
-				If $i == 14 Then
+				$temp = IniRead($Ini, $configDiffProperties[$configCheckPoint + $configDiffSize - $configSize + 1], "diff", 0)
+				If $configCheckPoint == 14 Then
 					$tempId = 15
 				Else
-					$tempId = $i
+					$tempId = $configCheckPoint
 				EndIf
 		EndSwitch
 		If $temp == 0 Then
 			If $tempId == 0 Then
-				builtConfigGUI($i, $i)
+				builtConfigGUI($configCheckPoint, $configCheckPoint)
 			Else
-				builtConfigGUI($tempId - 1, $tempId)
+				If $tempId = 12 Then
+					builtConfigGUI($tempId, $tempId)
+				Else
+					builtConfigGUI($tempId - 1, $tempId)
+				EndIf
 			EndIf
+			$continueCheck = False
 		EndIf
-	Next
-	$configComplete = True
-	buildRuntimeGUI(1)
+		$configCheckPoint += 1
+	WEnd
+	If $configCheckPoint >= 14 Then
+		$configComplete = True
+		buildRuntimeGUI(1)
+	EndIf
 EndFunc
 
 
@@ -195,7 +212,8 @@ EndFunc
 #ce		#############		#
 
 If FileExists($Ini) Then
-	checkConfig()
+	$needConfigCheck = True
+	checkConfig(True)
 Else
 	;start CONFIG
 	builtConfigGUI(0, $configSize)
