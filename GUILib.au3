@@ -55,17 +55,17 @@ Func calculateDiff($diff)
 	;1diff = dragdown to item
 	If ($diff < 1 Or $diff == 3) Then
 		$dragDownY = IniRead($Ini, "filter_3", "y", 0)
-		IniWrite($Ini, $configDiffProperties[0], "diff", ($diffPosition[0] - $dragDownY))
+		IniWrite($Ini, "diff", $configDiffProperties[0], ($diffPosition[0] - $dragDownY))
 	EndIf
 	;2diff = item to item
 	If ($diff > 0 And $diff < 2) Or $diff == 3 Then
-		IniWrite($Ini, $configDiffProperties[1], "diff",($diffPosition[1] - $diffPosition[0]))
+		IniWrite($Ini, "diff", $configDiffProperties[1], ($diffPosition[1] - $diffPosition[0]))
 	EndIf
 	;3diff = scroll to scroll
 	If ($diff > 1 And $diff < 3) Or $diff == 3 Then
 		$scrollTopY = IniRead($Ini, "scrollbartopleft", "y", 0)
 		$scrollBottomY = IniRead($Ini, "scrollbarbottomright", "y", 0)
-		IniWrite($Ini, $configDiffProperties[2], "diff",($scrollBottomY - $scrollTopY))
+		IniWrite($Ini, "diff", $configDiffProperties[2], ($scrollBottomY - $scrollTopY))
 	EndIf
 EndFunc
 
@@ -88,14 +88,12 @@ Func processConfig()
 		Else
 			;calculate diffs
 			Switch $configEndPoint
-				Case 13
-					calculateDiff(0)
 				Case 14
+					calculateDiff(0)
+				Case 15
 					calculateDiff(1)
 				Case 16
-					If $diffPosition[0] == 0 Then
-						calculateDiff(2)
-					Else
+					If not $needConfigCheck Then
 						calculateDiff(3)
 					EndIf
 			EndSwitch
@@ -113,33 +111,32 @@ EndFunc
 Func checkConfig($continueCheck)
 	$temp = 0
 	$tempId = 0
-	While ($configCheckPoint < 14 And $continueCheck)
+	While ($configCheckPoint < 17 And $continueCheck)
 		switch $configCheckPoint
-			Case 0 to 11
+			Case 0 to 13
 				$temp = IniRead($Ini, $configProperties[$configCheckPoint], "y", 0)
-			Case 12 To 14
-				$temp = IniRead($Ini, $configDiffProperties[$configCheckPoint + $configDiffSize - $configSize + 1], "diff", 0)
-				If $configCheckPoint == 14 Then
-					$tempId = 15
-				Else
-					$tempId = $configCheckPoint
-				EndIf
+			Case 14 To 16
+				$temp = IniRead($Ini, $configDiffProperties[$configCheckPoint + $configDiffSize - $configSize - 1], "diff", 0)
+				$tempId = $configCheckPoint
 		EndSwitch
 		If $temp == 0 Then
 			If $tempId == 0 Then
 				builtConfigGUI($configCheckPoint, $configCheckPoint)
 			Else
-				If $tempId = 12 Then
-					builtConfigGUI($tempId, $tempId)
-				Else
-					builtConfigGUI($tempId - 1, $tempId)
-				EndIf
+				Switch $tempId
+					Case 14
+						builtConfigGUI(14,14)
+					Case 15
+						builtConfigGUI(14,16)
+					Case 16
+						calculateDiff(2)
+				EndSwitch
 			EndIf
 			$continueCheck = False
 		EndIf
 		$configCheckPoint += 1
 	WEnd
-	If $configCheckPoint >= 14 Then
+	If $configCheckPoint >= 17 Then
 		$configComplete = True
 		buildRuntimeGUI(1)
 	EndIf
