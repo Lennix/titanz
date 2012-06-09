@@ -88,15 +88,16 @@ Func processConfig()
 		Else
 			;calculate diffs
 			Switch $configEndPoint
-				Case 14
-					calculateDiff(0)
 				Case 15
-					calculateDiff(1)
+					calculateDiff(0)
 				Case 16
 					If not $needConfigCheck Then
 						calculateDiff(3)
+					Else
+						calculateDiff(1)
 					EndIf
 			EndSwitch
+			$diffPoint = 0
 			If not $needConfigCheck Then
 				;config is complete
 				$configComplete = True
@@ -116,7 +117,7 @@ Func checkConfig($continueCheck)
 			Case 0 to 13
 				$temp = IniRead($Ini, $configProperties[$configCheckPoint], "y", 0)
 			Case 14 To 16
-				$temp = IniRead($Ini, $configDiffProperties[$configCheckPoint + $configDiffSize - $configSize - 1], "diff", 0)
+				$temp = IniRead($Ini, "diff", $configDiffProperties[$configCheckPoint + $configDiffSize - $configSize - 1], 0)
 				$tempId = $configCheckPoint
 		EndSwitch
 		If $temp == 0 Then
