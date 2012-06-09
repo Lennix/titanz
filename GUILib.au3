@@ -13,34 +13,21 @@ hotkeyset("{F7}","quit")
 #		CONFIGURATION		#
 #ce		#############		#
 
-Const $configSize = 12
-Const $configKeys = 3
+Const $configSize = 16
 Const $color_red = 0xff0000
 Const $color_green = 0x008000
 Const $color_yellow = 0x808000
 
-Enum $firstItemTypeCONF, $secondItemTypeCONF, $rarityCONF, $stat1DropDownCONF, $stat1ValueCONF, $stat2DropDownCONF, $stat2ValueCONF, $stat3DropDownCONF, $stat3ValueCONF, $searchCONF, $buyoutCONF, $acceptBuyoutCONF ;0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11
-
-Global $configProperties[$configSize] = ["First ItemType", "Second ItemType", "Rarity", "Stat1_DropDown", "Stat1_Value", "Stat2_DropDown", "Stat2_Value", "Stat3_DropDown", "Stat3_Value", "Search", "Buyout", "AcceptBuyout"]
-Global $config[$configSize][$configKeys]
+Global $configProperties[$configSize] = ["Search", "Buyout", "AcceptBuyout", "First ItemType", "Second ItemType", "Rarity", "Stat1_DropDown", "Stat1_Value", "Stat2_DropDown", "Stat2_Value", "Stat3_DropDown", "Stat3_Value", "Stat3_DropDownItem1","Stat3_DropDownItem2", "Stat3_DropDownScrollButton_Top", "Stat3_DropDownScrollButton_Bottom"]
 Global $Ini = "localconf"
 
 Global $configComplete = false
 Global $configProcessPoint = 0
 Global $configProcessPointLabel = ""
+Global $diffPoint = 0
+Global $diffPosition[4]
 
 Global $runtime = False
-
-;load CONFIG
-Func loadConfig()
-	For $i = 0 to $configSize-1 Step +1
-		$config[$i][0] = IniRead($Ini, $configProperties[$i], "x", 0)
-		$config[$i][1] = IniRead($Ini, $configProperties[$i], "y", 0)
-		$config[$i][2] = IniRead($Ini, $configProperties[$i], "color", 0)
-	Next
-	$configComplete = True
-	buildRuntimeGUI(1)
-EndFunc
 
 ;write a point to CONFIG
 Func writeConfigPoint($point)
@@ -51,18 +38,36 @@ Func writeConfigPoint($point)
 	IniWrite($Ini, $configProperties[$point], "color", PixelGetColor($pos[0], $pos[1]))
 EndFunc
 
+Func getYCoord()
+	$pos = MouseGetPos()
+	return $pos[1]
+EndFunc
+
 Func processConfig()
 	If not $configComplete Then
-		;write a point to CONFIG
-		writeConfigPoint($configProcessPoint)
+		Switch $configProcessPoint
+			;get difference positions
+			Case 12 To 15
+				$diffPosition[$diffPoint] = getYCoord()
+				$diffPoint += 1
+			;write normal points
+			Case Else
+				writeConfigPoint($configProcessPoint)
+		EndSwitch
 		$configProcessPoint += 1
 		;check if config is complete now
 		If $configProcessPoint < $configSize Then
 			;config not finished -> change label
 			GUICtrlSetData($configProcessPointLabel, $configProperties[$configProcessPoint])
 		Else
-			;config is complete -> load data
-			loadConfig()
+			;calculate diffs
+			$dragDownY = IniRead($Ini, "Stat3_DropDown", "y", 0)
+			IniWrite($Ini, "DragDownToItem", "diff", ($diffPosition[0] - $dragDownY))
+			IniWrite($Ini, "ItemToItem", "diff",($diffPosition[1] - $diffPosition[0]))
+			IniWrite($Ini, "ScrollToScroll", "diff",($diffPosition[3] - $diffPosition[2]))
+			;config is complete
+		    $configComplete = True
+			buildRuntimeGUI(1)
 		EndIf
 	EndIf
 EndFunc
@@ -131,7 +136,8 @@ EndFunc
 
 If FileExists($Ini) Then
 	;load CONFIG
-	loadConfig()
+	$configComplete = True
+	buildRuntimeGUI(1)
 Else
 	;start CONFIG
 	builtConfigGUI()

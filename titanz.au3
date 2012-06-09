@@ -31,7 +31,7 @@ Next
 IniWrite("settings.ini","1-Hand_all", "max", $max)
 #ce
 
-Search("1-Hand", "All", "Rare", "Experience", 200, "Dexterity", 10, "", 0)
+;Search("1-Hand", "All", "Rare", "Experience", 200, "Dexterity", 10, "", 0)
 
 $latesttime = 0
 
