@@ -20,7 +20,7 @@ Const $color_red = 0xff0000
 Const $color_green = 0x008000
 Const $color_yellow = 0x808000
 
-Global $configProperties[$configSize] = ["search", "buyout", "accept_buyout", "item_type", "item_subtype", "rarity", "Stat1_DropDown", "Stat1_Value", "Stat2_DropDown", "Stat2_Value", "Stat3_DropDown", "Stat3_Value", "Stat3_DropDownItem1","Stat3_DropDownItem2", "Stat3_DropDownScrollButton_Top", "Stat3_DropDownScrollButton_Bottom"]
+Global $configProperties[$configSize] = ["search", "buyout", "accept_buyout", "item_type", "item_subtype", "rarity", "stat1_dropdownbutton", "stat1_value", "stat2_dropdownbutton", "stat2_value", "stat3_dropdownbutton", "stat3_value", "stat3_dropdownwindow_item1","stat3_dropdownwindow_item2", "stat3_scrollbutton_topleft", "stat3_scrollbutton_bottomright"]
 Global $configDiffProperties[$configDiffSize] = ["DragDownToItem", "ItemToItem", "ScrollToScroll"]
 Global $Ini = "localconf"
 
@@ -168,8 +168,9 @@ Func builtConfigGUI($configStartPoint, $cconfigEndPoint)
 	createGUI()
 	GUICtrlCreateLabel("Welcome to TITAN - Z", 70, 20)
 	GUICtrlCreateLabel("Before you can start u have to do the program configuration", 10, 50)
-	GUICtrlCreateLabel("Move your cursor to ", 50, 95)
-	$configProcessPointLabel = GUICtrlCreateLabel($configProperties[$configProcessPoint], 150, 95,150)
+	GUICtrlCreateLabel("Move your cursor to ", 30, 95)
+	$configProcessPointLabel = GUICtrlCreateLabel("                                                    ", 130, 95)
+	GUICtrlSetData($configProcessPointLabel, $configProperties[$configProcessPoint])
 	GUICtrlSetColor($configProcessPointLabel, $color_red)
 	GUICtrlCreateLabel("Then push F8", 110, 140)
 	GUISetState(@SW_SHOW)
