@@ -51,6 +51,12 @@ Func D3Sleep($time)
 	sleep($time)
 EndFunc
 
+Func ChceckColor($position)
+	$posiArray[0] = IniRead("localconf", $position, "x", 0)
+	$posiArray[1] = IniRead("localconf", $position, "y", 0)
+	Return PixelGetColor($posiArray[0], $posiArray[1]) == IniRead("localconf", $position, "color", 0)
+EndFunc
+
 Func GetID($section, $key)
 	Return IniRead("settings.ini", $section, $key, "")
 EndFunc

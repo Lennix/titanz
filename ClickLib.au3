@@ -27,6 +27,12 @@ Func ChooseRarity($rarity)
 	D3Click("rarity", $rarity)
 EndFunc
 
+Func SetPrice($price)
+	D3Click("price")
+	D3Send("{BACKSPACE 3}")
+	D3Send($price)
+EndFunc
+
 Func ChooseFilter($nr, $type, $subtype, $entry, $value)
 	If $entry == "" Then Return 0
 	;ResetFilter($nr)

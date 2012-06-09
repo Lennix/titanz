@@ -30,8 +30,12 @@ For $i = 0 To 127
 Next
 IniWrite("settings.ini","1-Hand_all", "max", $max)
 #ce
-
-;Search("1-Hand", "All", "Rare", "Experience", 200, "Dexterity", 10, "", 0)
+Dim $stats[2][2]
+$stats[0][0] = "Experience"
+$stats[0][1] = 200
+$stats[1][0] = "Dexterience"
+$stats[1][1] = 200
+;Search("1-Hand", "All", "Rare", $stats, 100000)
 
 $latesttime = 0
 
@@ -45,16 +49,27 @@ WEnd
 
 _MemoryClose($mem)
 
-Func Search($type, $subtype, $rarity, $stat1, $value1, $stat2, $value2, $stat3, $value3)
+Func Search($type, $subtype, $rarity, $stats, $price)
 	ChooseItemType($type, $subtype)
 	ChooseRarity($rarity)
 	ResetFilter(1)
 	ResetFilter(2)
 	ResetFilter(3)
-	ChooseFilter(1, $type, $subtype, $stat1, $value1)
-	ChooseFilter(2, $type, $subtype, $stat2, $value2)
-	ChooseFilter(3, $type, $subtype, $stat3, $value3)
-	D3Click(698, 1115) ; search
+	For $i = 0 To UBound($stats)-1
+		ChooseFilter($i, $type, $subtype, $stats[$i][0], $stats[$i][1])
+	Next
+	SetPrice($price)
+	D3Click("search") ; search
+	D3Sleep(500); Wait for result
+	If CheckColor("item1") Then Buy(1)
+EndFunc
+
+Func Buy($nr)
+	; We currently only buy item 1
+	D3Click("item1")
+	D3Click("Buyout")
+	D3sleep(500)
+	D3Click("accept_buyout")
 EndFunc
 
 Func GetData(ByRef $items)
