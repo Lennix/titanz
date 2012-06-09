@@ -35,9 +35,7 @@ Func ChooseFilter($nr, $type, $subtype, $entry, $value)
 	$max -= ($nr-1)
 	debug("Entry: " & $entry & " @ Max: " & $max)
 	D3Click("filter_" & $nr) ; Open filter
-	D3sleep(200)
-	; Search for scrollbar
-	$scrollup = PixelSearch(527, 821 + ($nr-1)*50, 1070, 867+ ($nr-1)*50, 16763272,3)
+	D3sleep(200) ; wait for filter to open
 	If ($entry > 10) Then ; kann nicht sofort klicken
 		$clicks = Floor(($entry - 10) / 4) + 1
 		If ($entry > $max - 10) Then ; ist ganz hinten
@@ -46,7 +44,7 @@ Func ChooseFilter($nr, $type, $subtype, $entry, $value)
 		Else
 			$entry = $entry - $clicks*4
 		EndIf
-		D3Click($scrollup[0], $scrollup[1] + 365, 9*$clicks) ; nach unten scrollen
+		D3Scroll("filter_" & $nr, $clicks, "down")
 		debug("Filter: " & $nr & ", Eintrag: " & $entry & ", Anzahl klicks: " & $clicks)
 	EndIf
 	D3Click("filter_" & $nr, $entry) ; click entry filter
@@ -58,8 +56,7 @@ EndFunc
 
 Func ResetFilter($nr)
 	D3Click("filter_" & $nr) ; Open filter
-	$scrollup = PixelSearch(527, 821 + ($nr-1)*50, 1070, 867+ ($nr-1)*50, 16763272,3)
-	If @Error Then Return D3Click("filter_" & $nr) ; close filter
-	D3Click($scrollup[0], $scrollup[1], 160) ; scrollup
-	D3Click("filter_" & $nr, 1) ; Open filter
+	D3Sleep(200) ; wait for filter to open
+	D3Scroll("filter_" & $nr, 20, "up")
+	D3Click("filter_" & $nr,1 ) ; choose first entry
 EndFunc
