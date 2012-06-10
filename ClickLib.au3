@@ -29,7 +29,7 @@ EndFunc
 
 Func SetPrice($price)
 	D3Click("price")
-	D3Send("{BACKSPACE 3}")
+	D3Send("{BACKSPACE 10}")
 	D3Send($price)
 EndFunc
 
@@ -64,5 +64,5 @@ Func ResetFilter($nr)
 	D3Click("filter_" & $nr) ; Open filter
 	D3Sleep(200) ; wait for filter to open
 	D3Scroll("filter_" & $nr, 20, "up")
-	D3Click("filter_" & $nr,1 ) ; choose first entry
+	D3Click("filter_" & $nr, 0) ; choose first entry
 EndFunc

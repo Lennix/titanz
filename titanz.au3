@@ -56,7 +56,7 @@ Func Search($type, $subtype, $rarity, $stats, $price)
 	ResetFilter(2)
 	ResetFilter(3)
 	For $i = 0 To UBound($stats)-1
-		ChooseFilter($i, $type, $subtype, $stats[$i][0], $stats[$i][1])
+		ChooseFilter($i+1, $type, $subtype, $stats[$i][0], $stats[$i][1])
 	Next
 	SetPrice($price)
 	D3Click("search") ; search

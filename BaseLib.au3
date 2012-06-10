@@ -9,16 +9,16 @@ Func mouseinfo()
 	debug($pos[0] & "," & $pos[1] & ":" & PixelGetColor($pos[0], $pos[1]))
 EndFunc
 
-Func D3Click($position, $subpos = 0, $clicks = 1)
+Func D3Click($position, $subpos = -1, $clicks = 1)
 	If Not IsArray($position) Then
 		Dim $posiArray[3]
 		$posiArray[0] = IniRead("localconf", $position, "x", 0)
 		$posiArray[1] = IniRead("localconf", $position, "y", 0)
 		$position = $posiArray
 	EndIf
-	If $subpos > 0 Then $position[1] += IniRead("localconf", "diff", "DragDownToItem", 0) + (IniRead("localconf", "diff", "ItemToItem", 0)*$subpos)
+	If $subpos > -1 Then $position[1] += IniRead("localconf", "diff", "DragDownToItem", 0) + (IniRead("localconf", "diff", "ItemToItem", 0)*$subpos)
 	ControlClick("Diablo III", "", 0 , "left", $clicks, $position[0], $position[1])
-	D3Sleep(500)
+	D3Sleep(50)
 EndFunc
 
 Func D3Scroll($position, $count, $direction)
@@ -29,7 +29,7 @@ Func D3Scroll($position, $count, $direction)
 		$top = IniRead("localconf", "scrollbartopleft", "y", 0) + ($nr * IniRead("localconf", "diff", "DragDownToItem", 0))
 		$right = IniRead("localconf", "scrollbarbottomright", "x", 0)
 		$bottom = IniRead("localconf", "scrollbarbottomright", "y", 0) + ($nr * IniRead("localconf", "diff", "DragDownToItem", 0))
-		$position = PixelSearch($left, $top, $right, $bottom, 16763272,3)
+		$position = PixelSearch($left, $top, $right, $bottom, IniRead("localconf", "scrollbuttontop", "color", 0),3)
 		If @Error Then Return debug("Failed to find scrollbar")
 	ElseIf IniRead("localconf", $position, "x", 0) > 0 Then ; Position of open filter, add diff
 		Dim $posiArray[3]
@@ -37,8 +37,8 @@ Func D3Scroll($position, $count, $direction)
 		$posiArray[1] = IniRead("localconf", $position, "y", "") + IniRead("localconf", "diff", "DragDownToItem", 0)
 		$position = $posiArray
 	EndIf
-	If $direction == "down" Then $position[1] += IniRead("localconf", "diff", "ScrollToScroll", 0)
-	D3Click($position, 0, $count * 9)
+	If $direction == "down" Then $position[1] += IniRead("localconf", "diff", "ScrollToScroll2", 0)
+	D3Click($position, -1, $count * 9)
 EndFunc
 
 Func D3Send($String)
