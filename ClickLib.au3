@@ -65,4 +65,6 @@ Func ResetFilter($nr)
 	D3Sleep(200) ; wait for filter to open
 	D3Scroll("filter_" & $nr, 20, "up")
 	D3Click("filter_" & $nr, 0) ; choose first entry
+	D3Click("filtervalue_" & $nr)
+	D3Send("{BACKSPACE 3}")
 EndFunc

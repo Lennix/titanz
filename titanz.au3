@@ -30,12 +30,7 @@ For $i = 0 To 127
 Next
 IniWrite("settings.ini","1-Hand_all", "max", $max)
 #ce
-Dim $stats[2][2]
-$stats[0][0] = "Experience"
-$stats[0][1] = 200
-$stats[1][0] = "Dexterity"
-$stats[1][1] = 200
-Search("1-Hand", "All", "Rare", $stats, 100000)
+Search("1-Hand", "All", "Rare", "", 2000)
 
 $latesttime = 0
 
@@ -55,9 +50,11 @@ Func Search($type, $subtype, $rarity, $stats, $price)
 	ResetFilter(1)
 	ResetFilter(2)
 	ResetFilter(3)
-	For $i = 0 To UBound($stats)-1
-		ChooseFilter($i+1, $type, $subtype, $stats[$i][0], $stats[$i][1])
-	Next
+	If IsArray($stats) Then
+		For $i = 0 To UBound($stats)-1
+			ChooseFilter($i+1, $type, $subtype, $stats[$i][0], $stats[$i][1])
+		Next
+	EndIf
 	SetPrice($price)
 	D3Click("search") ; search
 	D3Sleep(500); Wait for result
