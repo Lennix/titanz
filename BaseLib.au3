@@ -9,36 +9,34 @@ Func mouseinfo()
 	debug($pos[0] & "," & $pos[1] & ":" & PixelGetColor($pos[0], $pos[1]))
 EndFunc
 
-Func D3Click($position, $subpos = -1, $clicks = 1)
+Func D3Click($position, $subpos = -1, $clicks = 1, $checkcolor = false, $diff = "entrydiff")
 	If Not IsArray($position) Then
 		Dim $posiArray[3]
 		$posiArray[0] = IniRead("localconf", $position, "x", 0)
 		$posiArray[1] = IniRead("localconf", $position, "y", 0)
+		$posiArray[2] = IniRead("localconf", $position, "color", 0)
 		$position = $posiArray
 	EndIf
-	If $subpos > -1 Then $position[1] += IniRead("localconf", "diff", "DragDownToItem", 0) + (IniRead("localconf", "diff", "ItemToItem", 0)*$subpos)
+	If $subpos > -1 Then
+		$position[0] -= 50
+		If $diff <> "itemdiff" Then $position[1] += IniRead("localconf", "diff", "filterentrydiff", 0)
+		$position[1] += (IniRead("localconf", "diff", $diff, 0)*$subpos)
+	EndIf
+	If $checkcolor And PixelGetColor($position[0], $position[1]) <> $position[2] Then Return False
 	ControlClick("Diablo III", "", 0 , "left", $clicks, $position[0], $position[1])
 	D3Sleep(50)
+	Return True
 EndFunc
 
-Func D3Scroll($position, $count, $direction)
-	If StringInStr($position, "filter") Then ; filter is special cause of changing width, we have to search
-		$position = StringSplit($position, "_")
-		$nr = $position[2] - 1
-		$left = IniRead("localconf", "scrollbartopleft", "x", 0)
-		$top = IniRead("localconf", "scrollbartopleft", "y", 0) + ($nr * IniRead("localconf", "diff", "DragDownToItem", 0))
-		$right = IniRead("localconf", "scrollbarbottomright", "x", 0)
-		$bottom = IniRead("localconf", "scrollbarbottomright", "y", 0) + ($nr * IniRead("localconf", "diff", "DragDownToItem", 0))
-		$position = PixelSearch($left, $top, $right, $bottom, IniRead("localconf", "scrollbuttontop", "color", 0),3)
-		If @Error Then Return debug("Failed to find scrollbar")
-	ElseIf IniRead("localconf", $position, "x", 0) > 0 Then ; Position of open filter, add diff
-		Dim $posiArray[3]
-		$posiArray[0] = IniRead("localconf", $position, "x", "")
-		$posiArray[1] = IniRead("localconf", $position, "y", "") + IniRead("localconf", "diff", "DragDownToItem", 0)
-		$position = $posiArray
-	EndIf
-	If $direction == "down" Then $position[1] += IniRead("localconf", "diff", "ScrollToScroll2", 0)
-	D3Click($position, -1, $count * 9)
+Func D3Scroll($position, $direction = "down", $count = 1)
+	Dim $posiArray[2]
+	$posiArray[0] = IniRead("localconf", $position, "x", 0)
+	$posiArray[1] = IniRead("localconf", $position, "y", 0) + IniRead("localconf", "diff", "filterentrydiff", 0)
+	WinActivate("Diablo III")
+	MouseMove($posiArray[0], $posiArray[1], 1)
+	D3sleep(100)
+	MouseWheel($direction, $count)
+	D3sleep(50)
 EndFunc
 
 Func D3Send($String)
@@ -64,4 +62,14 @@ EndFunc
 
 Func StartIt()
 	$start = Not $start
+EndFunc
+
+Func lookFor($stat,$center = 0)
+	$stat = StringStripWS($stat,8)
+	Dim $position[2]
+	$res= _ImageSearchArea("D3AHImages\" & $stat & ".jpg",$center,396,581,746,1021, $position[0],$position[1],100)
+	If $res = 1 Then
+		Return $position
+	EndIf
+	Return SetError(1,0, $position)
 EndFunc
