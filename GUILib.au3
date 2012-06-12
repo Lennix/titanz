@@ -3,7 +3,7 @@
 #include <GUIConstantsEx.au3>
 
 ;KEYS
-hotkeyset("{F8}","processConfig")
+;hotkeyset("{F8}","processConfig")
 hotkeyset("{F6}","stop")
 hotkeyset("{F5}","start")
 hotkeyset("{F7}","quit")
@@ -13,8 +13,8 @@ hotkeyset("{F7}","quit")
 #		CONFIGURATION		#
 #ce		#############		#
 
-Const $configSize = 21													;number of configuration properties we have to put in
-Const $configNormalEntries = 17											;number of normal entries we write to ini
+Const $configSize = 14													;number of configuration properties we have to put in
+Const $configNormalEntries = 13											;number of normal entries we write to ini
 Const $configDiffEntries = 5											;number of diff entires we calculated and write then to ini
 Const $configEntries = $configNormalEntries + $configDiffEntries		;number of all entries we write to ini
 
@@ -22,9 +22,10 @@ Const $color_red = 0xff0000
 Const $color_green = 0x008000
 Const $color_yellow = 0x808000
 
-Global $configProperties[$configSize] = ["search", "price", "buyout", "accept_buyout", "item_type", "item_subtype", "rarity", "filter_1", "filtervalue_1", "filter_2", "filtervalue_2", "filter_3", "filtervalue_3", "scrollbartopleft", "scrollbarbottomright", "scrollbuttontop", "scrollbuttonbottom", "filter3_dropdownwindow_entry1", "filter3_dropdownwindow_entry2", "firstitem", "seconditem"]
+Global $configProperties[$configSize] = ["search", "price", "buyout", "accept_buyout", "item_type", "item_subtype", "rarity", "filter_1", "filtervalue_1", "filter_2", "filtervalue_2", "filter_3", "filtervalue_3", "firstitem"]
 Global $configDiffProperties[$configDiffEntries] = ["scrollbuttondiff", "filterentrydiff", "entrydiff", "itemdiff", "scrollsquarediff"]
 Global $Ini = "localconf"
+Global $Pref = "Pref"
 Global $configProcessPointLabel = ""
 
 Global $configComplete = False
@@ -34,128 +35,70 @@ Global $runtime = False
 Global $configProcessPoint = 0
 Global $configCheckPoint = 0
 Global $diffPoint = 0
+Global $width_faktor													
+Global $height_faktor
 Global $configEndPoint = $configSize
 Global $diffPosition[4]
 
 ;write a point to CONFIG
-Func writeConfigPoint($point)
-	$pos = MouseGetPos()
-	Sleep(1000)
-	IniWrite($Ini, $configProperties[$point], "x", $pos[0])
-	IniWrite($Ini, $configProperties[$point], "y", $pos[1])
-	IniWrite($Ini, $configProperties[$point], "color", PixelGetColor($pos[0], $pos[1]))
-EndFunc
-
-Func getYCoord()
-	$pos = MouseGetPos()
-	return $pos[1]
-EndFunc
-
-; 1-4 -> one diff | 5 -> all diffs
-Func calculateDiff($diff)
-	If ($diff < 1 Or $diff == 5) Then
-		$scrollButtonTopY = IniRead($Ini, "scrollbuttontop", "y", 0)
-		IniWrite($Ini, "diff", $configDiffProperties[0], ($diffPosition[0] - $scrollButtonTopY ))
+Func writeConfigPoint($point)	
+	$datei = FileOpen(@MyDocumentsDir & "\Diablo III\D3Prefs.txt")		
+	
+	$res_width = StringSplit(FileReadLine($datei,10),'"')
+	$res_height = StringSplit(FileReadLine($datei,11),'"')	
+		
+	$res_width = int($res_width[2])
+	$res_height = int($res_height[2])	
+	
+	$width_faktor = $res_width / 1920
+	$height_faktor = $res_height / 1080	
+			
+	$Section_X = IniRead($Pref, $configProperties[$point], "x", 0)
+	$Section_Y = IniRead($Pref, $configProperties[$point], "y", 0)	
+	$Section_color = IniRead($Pref, $configProperties[$point], "color", 0)
+	
+	$new_x = $Section_X * $width_faktor
+	$new_y = $Section_Y * $height_faktor
+	
+	IniWrite($Ini,$configProperties[$point], "x" , $new_x)
+	IniWrite($Ini,$configProperties[$point], "y" , $new_y)
+	IniWrite($Ini, $configProperties[$point], "color", $Section_color)
+	
+	If $point = 13 Then
+		$filterentrydiff = IniRead($Pref, "diff", "filterentrydiff", 0)
+		$entrydiff = IniRead($Pref, "diff", "entrydiff", 0)
+		$itemdiff = IniRead($Pref, "diff", "itemdiff", 0)
+		$filterentrydiff *= $width_faktor
+		$entrydiff *= $width_faktor
+		$itemdiff *= $width_faktor
+		IniWrite($Ini,"diff", "filterentrydiff",$filterentrydiff)
+		IniWrite($Ini,"diff", "entrydiff",$entrydiff)
+		IniWrite($Ini,"diff", "itemdiff",$itemdiff)
 	EndIf
-	If ($diff > 0 And $diff < 2) Or $diff == 5 Then
-		$dragDownY = IniRead($Ini, "filter_3", "y", 0)
-		IniWrite($Ini, "diff", $configDiffProperties[1], ($diffPosition[1] - $dragDownY))
-	EndIf
-	If ($diff > 1 And $diff < 3) Or $diff == 5 Then
-		IniWrite($Ini, "diff", $configDiffProperties[2], ($diffPosition[2] - $diffPosition[1]))
-	EndIf
-	If ($diff > 2 And $diff < 4) Or $diff == 5 Then
-		$firstItemY = IniRead($Ini, "firstitem", "y", 0)
-		IniWrite($Ini, "diff", $configDiffProperties[3], ($diffPosition[3] - $firstItemY))
-	EndIf
-	If ($diff > 3 And $diff < 5) Or $diff == 5 Then
-		$scrollSquareTopY = IniRead($Ini, "scrollbartopleft", "y", 0)
-		$scrollSquareBottomY = IniRead($Ini, "scrollbarbottomright", "y", 0)
-		IniWrite($Ini, "diff", $configDiffProperties[4], ($scrollSquareBottomY - $scrollSquareTopY))
-	EndIf
+	
 EndFunc
 
 Func processConfig()
 	If not $configComplete Then
-		Switch $configProcessPoint
-			;DIFF POINTS
-			Case 16 To 18, 20								;16:scrollbuttonbottom, 17:itemwindow1, 18:itemwindow2, 20:seconditem
-				$diffPosition[$diffPoint] = getYCoord()
-				$diffPoint += 1
-			;NORMAL POINTS
-			Case Else
-				writeConfigPoint($configProcessPoint)
-		EndSwitch
+		writeConfigPoint($configProcessPoint)
+		
 		$configProcessPoint += 1
 		;check if config is complete now
 		If $configProcessPoint < $configEndPoint Then
 			;config not finished -> change label
 			GUICtrlSetData($configProcessPointLabel, $configProperties[$configProcessPoint])
 		Else
-			;calculate diffs for:
-			Switch $configEndPoint
-				;check configuration
-				Case 16 to 19, 20  ;19 if we have corrupt entrydiff (can be 18 if filterentrydiff is corrupted too)
-					calculateDiff($diffPoint - 1)
-				;first configuration
-				Case $configSize
-					calculateDiff(5)
-			EndSwitch
+			
 			;built config complete GUI for:
-			If not $needConfigCheck Then
-				;first configuration
+			
 				$configComplete = True
 				buildRuntimeGUI(1)
-			Else
-				;check configuration
-				checkConfig(True)
-			EndIf
+				
+				
+			
 		EndIf
 	EndIf
-EndFunc
-
-Func checkConfig($continueCheck)
-	$temp = 0
-	While ($configCheckPoint < $configEntries And $continueCheck)
-		switch $configCheckPoint
-			;DIFF ENTRIES
-			Case 16 to 18, 20 to 21 ;21 for checking the last diff value which is calculated by two normal entries
-				$temp = IniRead($Ini, "diff", $configDiffProperties[$diffPoint], 0)
-				If $temp == 0 Then
-					$continueCheck = False
-					Switch $diffPoint
-						Case 0 To 1, 3
-							builtConfigGUI($configCheckPoint, $configCheckPoint)
-						Case 2
-							If $diffPosition[1] <> 0 Then
-								builtConfigGUI($configCheckPoint, $configCheckPoint)
-							Else
-								$diffPoint = 1
-								builtConfigGUI($configCheckPoint - $diffPoint, $configCheckPoint + $diffPoint)
-							EndIf
-						Case 4
-							calculateDiff($diffPoint)
-					EndSwitch
-				Else
-					$diffPoint += 1
-				EndIf
-			;NORMAL ENTRIES
-			Case Else
-				$temp = IniRead($Ini, $configProperties[$configCheckPoint], "y", 0)
-				If $temp == 0 Then
-					$continueCheck = False
-					builtConfigGUI($configCheckPoint, $configCheckPoint)
-				EndIf
-		EndSwitch
-		$configCheckPoint += 1
-	WEnd
-	If $configCheckPoint >= $configEntries Then
-		$configComplete = True
-		buildRuntimeGUI(1)
-	EndIf
-EndFunc
-
-
+EndFunc	
 
 #cs		#############		#
 #			 GUI			#
@@ -188,6 +131,7 @@ Func stopBotGUI()
 	GUICtrlCreateLabel("push F5  to continue", 90, 80)
 EndFunc
 
+#cs
 ;CONFIG GUI
 Func builtConfigGUI($configStartPoint, $cconfigEndPoint)
 	$configProcessPoint = $configStartPoint
@@ -203,6 +147,7 @@ Func builtConfigGUI($configStartPoint, $cconfigEndPoint)
 	GUICtrlCreateLabel("Then push F8", 110, 140)
 	GUISetState(@SW_SHOW)
 EndFunc
+#ce
 
 ;RUNTIME GUI
 Func buildRuntimeGUI($status)
@@ -222,12 +167,10 @@ EndFunc
 #		   RUNTIME			#
 #ce		#############		#
 
-If FileExists($Ini) Then
-	$needConfigCheck = True
-	checkConfig(True)
-Else
-	;start CONFIG
-	builtConfigGUI(0, $configSize)
+If Not FileExists($Ini) Then
+	while not $configComplete
+		processConfig()
+    wend	
 EndIf
 
 Func start()
