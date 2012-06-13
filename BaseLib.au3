@@ -65,9 +65,13 @@ Func StartIt()
 EndFunc
 
 Func lookFor($stat,$center = 0)
+	$left = IniRead("localconf", "filterwindow", "left", 0)
+	$top = IniRead("localconf", "filterwindow", "top", 0)
+	$right = IniRead("localconf", "filterwindow", "right", 0)
+	$bottom = IniRead("localconf", "filterwindow", "bottom", 0)
 	$stat = StringStripWS($stat,8)
 	Dim $position[2]
-	$res= _ImageSearchArea("D3AHImages\" & $stat & ".jpg",$center,396,581,746,1021, $position[0],$position[1],100)
+	$res= _ImageSearchArea("D3AHImages\" & $stat & ".jpg",$center,$left,$top,$right,$bottom, $position[0],$position[1],100)
 	If $res = 1 Then
 		Return $position
 	EndIf

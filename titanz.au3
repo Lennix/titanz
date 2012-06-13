@@ -40,35 +40,83 @@ Global $knownItems[1][5]
 
 While 1
 	if $start then
-		Dim $stats[5][2]
-		$stats[0][0] = "Critical Hit Damage"
-		$stats[0][1] = 21
-		$stats[1][0] = "Dexterity"
-		$stats[1][1] = 80
-		$stats[2][0] = "Critical Hit Chance"
-		$stats[2][1] = 4
-		$stats[3][0] = "Attack Speed"
-		$stats[3][1] = 14
-		$stats[4][0] = "Vitality"
-		$stats[4][1] = 20
-		$checkBid = 5000000
-		$checkBuyout = 10000000
-		$items = Search("armor", "gloves", "All", $stats)
-		_ArrayDisplay($items)
-		$start = False
+		$checkBid = 0
+		$checkBuyout = 1000000
+		$items = Search("armor", "amulet", "All", "Magic Find", 40)
+		$checkBid = 0
+		$checkBuyout = 1500000
+		$items = Search("armor", "amulet", "All", "Magic Find", 35, -1, "Gold Find", 35)
+		$checkBid = 0
+		$checkBuyout = 300000
+		$items = Search("armor", "ring", "All", "Magic Find", 18)
+		$checkBid = 0
+		$checkBuyout = 1000000
+		$items = Search("armor", "amulet", "All", "Dexterity", 180, -1, "Critical Hit Damage", 50)
+		$checkBid = 0
+		$checkBuyout = 3000000
+		$items = Search("armor", "gloves", "All", "Dexterity", 140, -1, "Critical Hit Damage", 30, "Attack Speed", 16)
+		$checkBid = 0
+		$checkBuyout = 1500000
+		$items = Search("armor", "shoulders", "All", "Dexterity", 185)
+		$checkBid = 0
+		$checkBuyout = 3000000
+		$items = Search("armor", "belt", "All", "Dexterity", 185)
+		$checkBid = 0
+		$checkBuyout = 1000000
+		$items = Search("armor", "helm", "All", "Dexterity", 185)
+		$checkBid = 0
+		$checkBuyout = 3000000
+		$items = Search("armor", "ring", "All", "Dexterity", 40, -1, "Attack Speed", 15, "Critical Hit Damage", 20)
+		$checkBid = 0
+		$checkBuyout = 1000000
+		$items = Search("armor", "boots", "All", "Dexterity", 205, -1, "Movement Speed", 12)
+		$checkBid = 0
+		$checkBuyout = 2000000
+		$items = Search("armor", "pants", "All", "Dexterity", 240, -1, "Has Sockets", 2)
+		D3sleep(10000)
 	EndIf
 	D3sleep(200)
 WEnd
 
 _MemoryClose($mem)
 
-Func Search($type, $subtype, $rarity, $stats, $price = -1)
+Func Reset()
+	ReDim $knownItems[1][5]
+	$realtimepurchase = False
+EndFunc
+
+Func Search($type, $subtype, $rarity, $stat1, $value1, $price = -1, $stat2 = "", $value2 = 0, $stat3 = "", $value3 = 0, $stat4 = "", $value4 = 0, $stat5 = "", $value5 = 0)
+	Reset()
+	Dim $stats[1][2]
+	$stats[0][0] = $stat1
+	$stats[0][1] = $value1
+	If $stat2 <> "" Then
+		ReDim $stats[2][2]
+		$stats[1][0] = $stat2
+		$stats[1][1] = $value2
+	EndIf
+	If $stat3 <> "" Then
+		ReDim $stats[3][2]
+		$stats[2][0] = $stat3
+		$stats[2][1] = $value3
+	EndIf
+	If $stat4 <> "" Then
+		ReDim $stats[4][2]
+		$stats[3][0] = $stat4
+		$stats[3][1] = $value4
+	EndIf
+	If $stat5 <> "" Then
+		ReDim $stats[5][2]
+		$stats[4][0] = $stat5
+		$stats[4][1] = $value5
+	EndIf
 	ChooseItemType($type, $subtype)
 	ChooseRarity($rarity)
 	SetPrice($price)
 	If UBound($stats) <= 3 Then
 		$realtimepurchase = true
-		Return _Search($stats)
+		_Search($stats)
+		If @Error Then Return False
 	ElseIf UBound($stats) <= 5 Then
 		Dim $tmpStats[3][2]
 		For $i = 0 To 2
@@ -76,6 +124,7 @@ Func Search($type, $subtype, $rarity, $stats, $price = -1)
 			$tmpStats[$i][1] = $stats[$i][1]
 		Next
 		$knownItems = _Search($tmpStats)
+		If @Error Then Return False
 		$realtimepurchase = true
 		If UBound($stats) <= 4 Then
 			$tmpStats[2][0] = $stats[3][0]
@@ -97,7 +146,7 @@ Func _Search($stats, $same = 0)
 	ResetFilter(3)
 	If IsArray($stats) Then
 		For $i = $same To UBound($stats)-1
-			ChooseFilter($i+1, $stats[$i][0], $stats[$i][1])
+			If Not ChooseFilter($i+1, $stats[$i][0], $stats[$i][1]) Then Return SetError(1, 0, False)
 		Next
 	EndIf
 	Return ScanPages()
@@ -123,14 +172,14 @@ Func Buy($nr)
 	D3Click("firstitem", $nr, 1, false, "itemdiff")
 	D3Click("buyout")
 	D3sleep(10000)
-	D3Click("accept_buyout")
+	;D3Click("accept_buyout")
 EndFunc
 
 Func Bid($nr)
 	D3Click("firstitem", $nr, 1, false, "itemdiff")
 	D3Click("bid")
 	D3sleep(10000)
-	D3Click("accept_buyout")
+	;D3Click("accept_buyout")
 EndFunc
 
 Func GetData(ByRef $items)
@@ -159,15 +208,18 @@ Func CheckItem($item, $nr)
 		Next
 		If Not $found Then Return false
 	EndIf
-	If $checkBuyout > 0 And $item[0] > 0 And $item[0] <= $checkBuyout Then Buy($nr)
-	If $checkBid > 0 And $item[1] <= $checkBid Then Bid($nr)
+	If $checkBuyout > 0 And $item[0] > 0 And $item[0] <= $checkBuyout Then
+		Buy($nr)
+	ElseIf $checkBid > 0 And $item[1] <= $checkBid Then
+		Bid($nr)
+	EndIf
 EndFunc
 
 Func GetItemData($nr)
 	Dim $return[5]
 	Local $offsets[5] = [0, 0, 4, 40, 32+280*$nr]
 
-	$basepointer = _MemoryPointerRead($baseadd + 0xF9D998, $mem, $offsets)
+	$basepointer = _MemoryPointerRead($baseadd + 0xFA3DB0, $mem, $offsets)
 	If @Error Then
 		debug("Error reading memory")
 		Return 0

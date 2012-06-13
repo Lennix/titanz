@@ -35,12 +35,14 @@ Func ChooseFilter($nr, $entry, $value)
 			ExitLoop
 		EndIf
 		D3Scroll("filter_" & $nr, "down", 5)
+		If $x == 10 Then Return False
 	Next
 
 	; Click on value
 	D3Click("filtervalue_" & $nr)
 	D3Send("{BACKSPACE 3}")
 	D3Send($value)
+	Return True
 EndFunc
 
 Func ResetFilter($nr)
