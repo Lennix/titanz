@@ -26,26 +26,33 @@ EndFunc
 
 Func ChooseFilter($nr, $entry, $value)
 	If $entry == "" Then Return 0
-	D3Click("filter_" & $nr) ; Open filter
+	If $filterInfo[$nr-1][0] <> $entry Then
+		D3Click("filter_" & $nr) ; Open filter
+		For $x = 0 To 10
+			$position = LookFor($entry,1)
+			If Not @Error Then
+				D3Click($position)
+				$filterInfo[$nr-1][0] = $entry
+				ExitLoop
+			EndIf
+			D3Scroll("filter_" & $nr, "down", 5)
+			If $x == 10 Then Return False
+		Next
+	EndIf
 
-	For $x = 0 To 10
-		$position = LookFor($entry,1)
-		If Not @Error Then
-			D3Click($position)
-			ExitLoop
-		EndIf
-		D3Scroll("filter_" & $nr, "down", 5)
-		If $x == 10 Then Return False
-	Next
-
-	; Click on value
-	D3Click("filtervalue_" & $nr)
-	D3Send("{BACKSPACE 3}")
-	D3Send($value)
+	If $filterInfo[$nr-1][1] <> $value Then
+		; Click on value
+		$filterInfo[$nr-1][1] = $value
+		D3Click("filtervalue_" & $nr)
+		D3Send("{BACKSPACE 3}")
+		D3Send($value)
+	EndIf
 	Return True
 EndFunc
 
 Func ResetFilter($nr)
+	$filterInfo[$nr-1][0] = ""
+	$filterInfo[$nr-1][1] = 0
 	D3Click("filter_" & $nr) ; Open filter
 	D3Sleep(200) ; wait for filter to open
 	D3Scroll("filter_" & $nr, "up", 20)
