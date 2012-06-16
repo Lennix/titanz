@@ -1,4 +1,5 @@
-Func debug($string)
+Func debug($string, $priority = 0)
+	If $priority == 1 And Not $debugOut Then Return $string
 	ConsoleWrite($string & @CRLF)
 	Return $string
 EndFunc
@@ -62,6 +63,40 @@ EndFunc
 
 Func StartIt()
 	$start = Not $start
+EndFunc
+
+Func startup()
+	Global $checkBid = 0
+	Global $checkBuyout = 0
+	Global $realtimepurchase = false
+	Global $knownItems[1][5]
+	Global $filterInfo[3][2]
+	Global $g_searchList[1][5] ; itemType, subType, rarity, filterInfo, purchaseInfo
+
+	; lets "login" first
+	connect()
+
+	Global $start = false
+	$sSQliteDll = _SQLite_Startup ()
+	If @error Then
+		MsgBox(16, "SQLite Error", "SQLite.dll Can't be Loaded!")
+		Exit - 1
+	EndIf
+
+	Global $db = _SQLite_Open("items.db")
+
+	; find process and get base adress
+	Global $pid = WinGetProcess("Diablo III")
+	Global $mem = _MemoryOpen($pid)
+	WinActivate("Diablo III")
+	$module = "Diablo III.exe"
+	Global $baseadd = _MemoryModuleGetBaseAddress($pid, $module)
+EndFunc
+
+Func feierabend()
+	_MemoryClose($mem)
+	_Sqlite_close($db)
+	_SQLite_Shutdown()
 EndFunc
 
 Func lookFor($stat,$center = 0)

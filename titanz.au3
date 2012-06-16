@@ -2,130 +2,45 @@
 #include "ClickLib.au3"
 #include "BaseLib.au3"
 #include "GUILib.au3"
+#include "ComLib.au3"
+#include "SearchLib.au3"
 #include <Array.au3>
 #include <ImageSearch.au3>
 #include <SQLite.au3>
 #include <SQLite.dll.au3>
+#include <INet.au3>
 
-Global $debugOut = false
-
-$start = false
+Global $debugOut = true
+Global $g_searchIdx = 0
+Global $g_maxSearchIdx = 0
 
 HotKeySet("{F10}", "mouseinfo")
 HotKeySet("{F11}", "StartIt")
 
-$sSQliteDll = _SQLite_Startup ()
-If @error Then
-    MsgBox(16, "SQLite Error", "SQLite.dll Can't be Loaded!")
-    Exit - 1
-EndIf
-
-$db = _SQLite_Open("items.db")
-
-$pid = WinGetProcess("Diablo III")
-$mem = _MemoryOpen($pid)
-
-WinActivate("Diablo III")
-
-$module = "Diablo III.exe"
-
-$baseadd = _MemoryModuleGetBaseAddress($pid, $module)
-
-#cs
-$max = 0
-Dim $armorTypes[128] = ["All", "Axe", "Bow", "Daibo", "Crossbow", "Mace", "Mighty Weapon", "Polearm", "Staff", "Sword"]
-For $i = 0 To 127
-	If $armorTypes[$i] <> "" Then
-		If $armorTypes[$i] <> "..." Then IniWrite("settings.ini","2-Hand", $armorTypes[$i], $i)
-		$max += 1
-	EndIf
-Next
-;IniWrite("settings.ini","1-Hand_all", "max", $max)
-#ce
-
-Global $checkBid = 0
-Global $checkBuyout = 0
-Global $realtimepurchase = false
-Global $knownItems[1][5]
-Global $filterInfo[3][2]
+startup()
 
 While 1
 	if $start then
-		$checkBid = 0
-		$checkBuyout = 1000000
-		$items = Search("armor", "amulet", "All", "Dexterity", 140, -1, "Attack Speed", 14, "Critical Hit Chance", 4, "Critical Hit Damage", 40)
-		$checkBid = 0
-		$checkBuyout = 1000000
-		$items = Search("armor", "amulet", "All", "Magic Find", 40)
-		$checkBid = 0
-		$checkBuyout = 1500000
-		$items = Search("armor", "amulet", "All", "Magic Find", 35, -1, "Gold Find", 35)
-		$checkBid = 0
-		$checkBuyout = 300000
-		$items = Search("armor", "ring", "All", "Magic Find", 18)
-		$checkBid = 0
-		$checkBuyout = 1000000
-		$items = Search("armor", "amulet", "All", "Dexterity", 180, -1, "Critical Hit Damage", 50)
-		$checkBid = 0
-		$checkBuyout = 3000000
-		$items = Search("armor", "gloves", "All", "Dexterity", 140, -1, "Critical Hit Damage", 30, "Attack Speed", 16)
-		$checkBid = 0
-		$checkBuyout = 1500000
-		$items = Search("armor", "shoulders", "All", "Dexterity", 185)
-		$checkBid = 0
-		$checkBuyout = 3000000
-		$items = Search("armor", "belt", "All", "Dexterity", 185)
-		$checkBid = 0
-		$checkBuyout = 1000000
-		$items = Search("armor", "helm", "All", "Dexterity", 185)
-		$checkBid = 0
-		$checkBuyout = 3000000
-		$items = Search("armor", "ring", "All", "Dexterity", 40, -1, "Attack Speed", 15, "Critical Hit Damage", 20)
-		$checkBid = 0
-		$checkBuyout = 1000000
-		$items = Search("armor", "boots", "All", "Dexterity", 205, -1, "Movement Speed", 12)
-		$checkBid = 0
-		$checkBuyout = 2000000
-		$items = Search("armor", "pants", "All", "Dexterity", 240, -1, "Has Sockets", 2)
-		D3sleep(10000)
+		$g_searchIdx += 1
+		If $g_searchIdx > $g_maxSearchIdx Then $g_searchIdx = 1
+		Search($g_searchIdx)
+		D3sleep(2000)
 	EndIf
 	D3sleep(200)
 WEnd
 
-_MemoryClose($mem)
-_Sqlite_close($db)
-_SQLite_Shutdown()
+feierabend()
 
 Func Reset()
 	If IsArray($knownItems) Then ReDim $knownItems[1][5]
 	$realtimepurchase = False
 EndFunc
 
-Func Search($type, $subtype, $rarity, $stat1, $value1, $price = -1, $stat2 = "", $value2 = 0, $stat3 = "", $value3 = 0, $stat4 = "", $value4 = 0, $stat5 = "", $value5 = 0)
+Func Search($idx)
+	Local $type, $subType, $rarity, $stats, $purchase
 	Reset()
-	Dim $stats[1][2]
-	$stats[0][0] = $stat1
-	$stats[0][1] = $value1
-	If $stat2 <> "" Then
-		ReDim $stats[2][2]
-		$stats[1][0] = $stat2
-		$stats[1][1] = $value2
-	EndIf
-	If $stat3 <> "" Then
-		ReDim $stats[3][2]
-		$stats[2][0] = $stat3
-		$stats[2][1] = $value3
-	EndIf
-	If $stat4 <> "" Then
-		ReDim $stats[4][2]
-		$stats[3][0] = $stat4
-		$stats[3][1] = $value4
-	EndIf
-	If $stat5 <> "" Then
-		ReDim $stats[5][2]
-		$stats[4][0] = $stat5
-		$stats[4][1] = $value5
-	EndIf
+	If Not GetFromSearchList($idx, $type, $subtype, $rarity, $stats, $purchase) Then Return False
+	$price = $purchase[1]
 	ChooseItemType($type, $subtype)
 	ChooseRarity($rarity)
 	SetPrice($price)
@@ -320,3 +235,54 @@ Func MergeItems($items1, $items2)
 	Next
 	Return $items
 EndFunc
+
+#cs
+$max = 0
+Dim $armorTypes[128] = ["All", "Axe", "Bow", "Daibo", "Crossbow", "Mace", "Mighty Weapon", "Polearm", "Staff", "Sword"]
+For $i = 0 To 127
+	If $armorTypes[$i] <> "" Then
+		If $armorTypes[$i] <> "..." Then IniWrite("settings.ini","2-Hand", $armorTypes[$i], $i)
+		$max += 1
+	EndIf
+Next
+;IniWrite("settings.ini","1-Hand_all", "max", $max)
+#ce
+
+		#cs
+		$checkBid = 0
+		$checkBuyout = 1000000
+		$items = Search("armor", "amulet", "All", "Dexterity", 140, -1, "Attack Speed", 14, "Critical Hit Chance", 4, "Critical Hit Damage", 40)
+		$checkBid = 0
+		$checkBuyout = 1000000
+		$items = Search("armor", "amulet", "All", "Magic Find", 40)
+		$checkBid = 0
+		$checkBuyout = 1500000
+		$items = Search("armor", "amulet", "All", "Magic Find", 35, -1, "Gold Find", 35)
+		$checkBid = 0
+		$checkBuyout = 300000
+		$items = Search("armor", "ring", "All", "Magic Find", 18)
+		$checkBid = 0
+		$checkBuyout = 1000000
+		$items = Search("armor", "amulet", "All", "Dexterity", 180, -1, "Critical Hit Damage", 50)
+		$checkBid = 0
+		$checkBuyout = 3000000
+		$items = Search("armor", "gloves", "All", "Dexterity", 140, -1, "Critical Hit Damage", 30, "Attack Speed", 16)
+		$checkBid = 0
+		$checkBuyout = 1500000
+		$items = Search("armor", "shoulders", "All", "Dexterity", 185)
+		$checkBid = 0
+		$checkBuyout = 3000000
+		$items = Search("armor", "belt", "All", "Dexterity", 185)
+		$checkBid = 0
+		$checkBuyout = 1000000
+		$items = Search("armor", "helm", "All", "Dexterity", 185)
+		$checkBid = 0
+		$checkBuyout = 3000000
+		$items = Search("armor", "ring", "All", "Dexterity", 40, -1, "Attack Speed", 15, "Critical Hit Damage", 20)
+		$checkBid = 0
+		$checkBuyout = 1000000
+		$items = Search("armor", "boots", "All", "Dexterity", 205, -1, "Movement Speed", 12)
+		$checkBid = 0
+		$checkBuyout = 2000000
+		$items = Search("armor", "pants", "All", "Dexterity", 240, -1, "Has Sockets", 2)
+		#ce
