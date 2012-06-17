@@ -24,6 +24,13 @@ Func SetPrice($price)
 	If $price > -1 Then D3Send($price)
 EndFunc
 
+Func SetResellPrice($bid, $buyout)
+	D3Click("startingprice")
+	If $bid > -1 Then D3Send($bid)
+	D3Click("buyoutprice")
+	If $buyout > -1 Then D3Send($buyout)
+EndFunc
+
 Func ChooseFilter($nr, $entry, $value)
 	If $entry == "" Then Return 0
 	If $filterInfo[$nr-1][0] <> $entry Then
