@@ -168,6 +168,24 @@ Func Bid($nr)
 	Return True
 EndFunc
 
+#cs
+loacalconfig positions we need:
+- completed: firstitem_ahstash(filter4), sendtostash
+- sell: firstitem_stash, startingprice, buyoutprice, createauction
+#ce
+Func Resell($itemId, $bid, $buyout)
+	D3Click("completed")
+	D3Sleep(200)
+	;new scroll algorithm to find item at ah stash
+	D3Click("sendtostash")
+	D3Click("sell")
+	D3Sleep(200)
+	D3Click("firstitem_stash")
+	SetResellPrice($bid, $buyout)
+	D3Click"createauction")
+EndFunc
+
+
 Func GetData(ByRef $items)
 	For $i = 0 To 10
 		$currMax = UBound($items)
