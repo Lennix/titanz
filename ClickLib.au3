@@ -26,10 +26,13 @@ EndFunc
 
 Func ChooseFilter($nr, $entry, $value)
 	If $entry == "" Then Return 0
+	If $entry == "Empty Sockets" Then $g_socketSearch = true
 	If $filterInfo[$nr-1][0] <> $entry Then
 		D3Click("filter_" & $nr) ; Open filter
 		For $x = 0 To 10
-			$position = LookFor($entry,1)
+			$tmpEntry = $entry
+			If $entry == "Empty Sockets" Then $tmpEntry = "Has Sockets"
+			$position = LookFor($tmpEntry,1)
 			If Not @Error Then
 				D3Click($position)
 				$filterInfo[$nr-1][0] = $entry
@@ -55,7 +58,7 @@ Func ResetFilter($nr)
 	$filterInfo[$nr-1][1] = 0
 	D3Click("filter_" & $nr) ; Open filter
 	D3Sleep(200) ; wait for filter to open
-	D3Scroll("filter_" & $nr, "up", 20)
+	D3Scroll("filter_" & $nr, "up", 30)
 	D3Click("filter_" & $nr, 0) ; choose first entry
 	D3Click("filtervalue_" & $nr)
 	D3Send("{BACKSPACE 3}")

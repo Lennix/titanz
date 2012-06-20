@@ -21,3 +21,9 @@ Func GetFromSearchList($idx, ByRef $itemType, ByRef $subType, ByRef $rarity, ByR
 	$purchase = $g_searchList[$idx][5]
 	Return True
 EndFunc
+
+Func ReloadSearchList()
+	ReDim $g_searchList[1][6]
+	$g_maxSearchIdx = 0
+	loadSearchList()
+EndFunc

@@ -19,8 +19,10 @@ Func D3Click($position, $subpos = -1, $clicks = 1, $checkcolor = false, $diff = 
 		$position = $posiArray
 	EndIf
 	If $subpos > -1 Then
-		$position[0] -= 50
-		If $diff <> "itemdiff" Then $position[1] += IniRead("localconf", "diff", "filterentrydiff", 0)
+		If $diff <> "itemdiff" Then
+			$position[0] -= 50
+			$position[1] += IniRead("localconf", "diff", "filterentrydiff", 0)
+		EndIf
 		$position[1] += (IniRead("localconf", "diff", $diff, 0)*$subpos)
 	EndIf
 	If $checkcolor And PixelGetColor($position[0], $position[1]) <> $position[2] Then Return False
@@ -110,5 +112,25 @@ Func lookFor($stat,$center = 0)
 	If $res = 1 Then
 		Return $position
 	EndIf
+	Return SetError(1,0, $position)
+EndFunc
+
+Func lookForSocket($nr, $id)
+	If StringInStr($g_socketKnown, $id & ",") Then Return SetError(1,0, false); we already know that item no need to scan
+	$g_socketKnown &= $id & ","
+	Dim $itemPosition[2]
+	$itemPosition[0] = IniRead("localconf", "firstitem", "x", 0)
+	$itemPosition[1] = IniRead("localconf", "firstitem", "y", 0)
+	$curPos = MouseGetPos()
+	$diff = sqrt(($curPos[0] - $itemPosition[0])^2+($curPos[1] - ($itemPosition[1] + $nr*IniRead("localconf", "diff", "itemdiff", 0)))^2)
+	MouseMove($itemPosition[0], $itemPosition[1] + $nr*IniRead("localconf", "diff", "itemdiff", 0),1)
+	D3Sleep(Round($diff/3))
+	$left = IniRead("localconf", "socketsearch", "left", 0)
+	$top = IniRead("localconf", "socketsearch", "top", 0)
+	$right = IniRead("localconf", "socketsearch", "right", 0)
+	$bottom = IniRead("localconf", "socketsearch", "bottom", 0)
+	Dim $position[2]
+	$res= _ImageSearchArea("D3AHImages\EmptySocket.jpg",0,$left,$top,$right,$bottom, $position[0],$position[1],100)
+	If $res = 1 Then Return $position
 	Return SetError(1,0, $position)
 EndFunc

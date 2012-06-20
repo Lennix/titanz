@@ -249,5 +249,7 @@ Func stop()
 EndFunc
 
 Func quit()
+	FileDelete("socketsearch")
+	FileWrite("socketsearch",$g_socketKnown)
 	Exit
 EndFunc

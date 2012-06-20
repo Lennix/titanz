@@ -10,19 +10,25 @@
 #include <SQLite.dll.au3>
 #include <INet.au3>
 
-Global $debugOut = true
+Global $debugOut = false
 Global $g_searchIdx = 0
 Global $g_maxSearchIdx = 0
+Global $g_socketSearch = false
+Global $g_socketKnown = FileRead("socketsearch")
 
 HotKeySet("{F10}", "mouseinfo")
 HotKeySet("{F11}", "StartIt")
+hotkeyset("{F4}","ScanPages")
 
 startup()
 
 While 1
 	if $start then
 		$g_searchIdx += 1
-		If $g_searchIdx > $g_maxSearchIdx Then $g_searchIdx = 1
+		If $g_searchIdx > $g_maxSearchIdx Then
+			$g_searchIdx = 1
+			Reset(true)
+		EndIf
 		Search($g_searchIdx)
 		D3sleep(2000)
 	EndIf
@@ -31,16 +37,20 @@ WEnd
 
 feierabend()
 
-Func Reset()
+Func Reset($full = false)
+	If $full Then ReloadSearchList()
 	If IsArray($knownItems) Then ReDim $knownItems[1][5]
 	$realtimepurchase = False
 EndFunc
 
 Func Search($idx)
 	Local $type, $subType, $rarity, $stats, $purchase
+	$g_socketSearch = false
 	Reset()
 	If Not GetFromSearchList($idx, $type, $subtype, $rarity, $stats, $purchase) Then Return False
 	$price = $purchase[1]
+	$checkbid = $purchase[2]
+	$checkBuyout = $purchase[3]
 	ChooseItemType($type, $subtype)
 	ChooseRarity($rarity)
 	SetPrice($price)
@@ -114,15 +124,21 @@ EndFunc
 
 Func ScanPages()
 	D3Click("search") ; search
-	D3sleep(250)
+	$timer = TimerInit()
+	D3sleep(100)
+	Do
+		D3Sleep(25)
+	Until CheckColor("prev_page_grey") Or TimerDiff($timer) > 5000
 	Dim $items[1][5]
 	While 1
 		If Not GetData($items) Then ExitLoop
 		If Not D3Click("next_page", -1, 1, true) Then ExitLoop ; Next page
 		$timer = TimerInit()
 		Do
-			D3Sleep(50)
-		Until CheckColor("prev_page") Or TimerDiff($timer) > 10000
+			D3Sleep(20)
+			;If Not CheckColor("prev_page") And Not CheckColor("next_page") Then ExitLoop
+		Until CheckColor("prev_page") Or TimerDiff($timer) > 5000
+		D3Sleep(250)
 	WEnd
 	CleanItems($items)
 	Return $items
@@ -131,15 +147,25 @@ EndFunc
 Func Buy($nr)
 	D3Click("firstitem", $nr, 1, false, "itemdiff")
 	D3Click("buyout")
-	D3sleep(10000)
-	;D3Click("accept_buyout")
+	debug("Buying " & $nr)
+	d3sleep(5000)
+	D3Click("accept_buyout")
+	d3sleep(2000)
+	D3Click("accept_buyout_notify")
+	d3sleep(2000)
+	Return True
 EndFunc
 
 Func Bid($nr)
 	D3Click("firstitem", $nr, 1, false, "itemdiff")
 	D3Click("bid")
-	D3sleep(10000)
-	;D3Click("accept_buyout")
+	debug("Bidding " & $nr)
+	d3sleep(5000)
+	D3Click("accept_buyout")
+	d3sleep(2000)
+	D3Click("accept_buyout_notify")
+	d3sleep(2000)
+	Return True
 EndFunc
 
 Func GetData(ByRef $items)
@@ -147,7 +173,7 @@ Func GetData(ByRef $items)
 		$currMax = UBound($items)
 		ReDim $items[$currMax+1][5]
 		$item = GetItemData($i)
-		CheckItem($item, $i)
+		If Not CheckItem($item, $i) Then Return False
 		For $y = 0 To 4
 			$items[$currMax][$y] = $item[$y]
 		Next
@@ -156,7 +182,15 @@ Func GetData(ByRef $items)
 EndFunc
 
 Func CheckItem($item, $nr)
-	If $item[4] <> 102 Or Not $realtimepurchase Then Return false ; already sold
+	If $item[4] <> 102 Or Not $realtimepurchase Then Return True ; already sold
+	If $g_socketSearch Then
+		lookForSocket($nr, $item[2])
+		If @Error Then
+			Return True
+		Else
+			debug("Bid: " & $item[1] & ", BO: " & $item[0] & ", Empty socket!")
+		EndIf
+	EndIf
 	If UBound($knownItems) > 1 Then ; multi-search
 		$found = false
 		For $i = 0 To UBound($knownItems)-1
@@ -166,12 +200,12 @@ Func CheckItem($item, $nr)
 				ExitLoop
 			EndIf
 		Next
-		If Not $found Then Return false
+		If Not $found Then Return True
 	EndIf
 	If $checkBuyout > 0 And $item[0] > 0 And $item[0] <= $checkBuyout Then
-		Buy($nr)
+		Return Buy($nr)
 	ElseIf $checkBid > 0 And $item[1] <= $checkBid Then
-		Bid($nr)
+		Return Bid($nr)
 	EndIf
 EndFunc
 
@@ -201,7 +235,7 @@ Func GetItemData($nr)
 	$return[3] = _MemoryRead($basepointer + $currentbid, $mem)
 	$return[4] = _MemoryRead($basepointer + $flags, $mem)
 
-	if $debugOut Then debug("Buyout: " & $return[0] & ", MinBid: " & $return[1] & ", currentBid: " & $return[3])
+	if $debugOut Then debug("ID: " & $return[2] & ", Buyout: " & $return[0] & ", MinBid: " & $return[1] & ", currentBid: " & $return[3])
 
 	Return $return
 EndFunc
