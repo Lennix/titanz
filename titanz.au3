@@ -23,6 +23,12 @@ hotkeyset("{F4}","ScanPages")
 startup()
 
 While 1
+	$msg = GUIGetMsg()
+
+		if $msg = Not 0 Then
+			GUIcheck($msg)
+		EndIf
+
 	if $start then
 		$g_searchIdx += 1
 		If $g_searchIdx > $g_maxSearchIdx Then
@@ -182,7 +188,7 @@ Func Resell($itemId, $bid, $buyout)
 	D3Sleep(200)
 	D3Click("firstitem_stash")
 	SetResellPrice($bid, $buyout)
-	D3Click"createauction")
+	D3Click("createauction")
 EndFunc
 
 

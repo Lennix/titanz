@@ -2,11 +2,11 @@
 #include <WindowsConstants.au3>
 #include <GUIConstantsEx.au3>
 #include <WinAPI.au3>
-
+#Include <EditConstants.au3>
 
 
 ;KEYS
-;hotkeyset("{F8}","processConfig")
+HotKeySet("{F10}", "mouseinfo")
 hotkeyset("{F6}","stop")
 hotkeyset("{F5}","start")
 hotkeyset("{F7}","quit")
@@ -16,8 +16,8 @@ hotkeyset("{F7}","quit")
 #		CONFIGURATION		#
 #ce		#############		#
 
-Const $configSize = 17													;number of configuration properties we have to put in
-Const $configNormalEntries = 16											;number of normal entries we write to ini
+Const $configSize = 20													;number of configuration properties we have to put in
+Const $configNormalEntries = 19											;number of normal entries we write to ini
 Const $configDiffEntries = 3											;number of diff entires we calculated and write then to ini
 Const $configEntries = $configNormalEntries + $configDiffEntries		;number of all entries we write to ini
 
@@ -26,7 +26,7 @@ Const $color_green = 0x008000
 Const $color_white = 0xffffff
 Const $color_yellow = 0x808000
 
-Global $configProperties[$configSize] = ["search", "price", "buyout", "accept_buyout", "item_type", "item_subtype", "rarity", "filter_1", "filtervalue_1", "filter_2", "filtervalue_2", "filter_3", "filtervalue_3", "firstitem", "next_page" , "prev_page","bid"]
+Global $configProperties[$configSize] = ["search", "price", "buyout", "accept_buyout", "item_type", "item_subtype", "rarity", "filter_1", "filtervalue_1", "filter_2", "filtervalue_2", "filter_3", "filtervalue_3", "filter_dropdownwindow_entry1", "filter_dropdownwindow_entry2", "firstitem", "seconditem", "next_page" , "prev_page", "bid"]
 Global $configDiffProperties[$configDiffEntries] = ["filterentrydiff", "entrydiff", "itemdiff"]
 Global $Ini = "localconf"
 Global $Pref = "Pref"
@@ -36,10 +36,15 @@ Global $configComplete = False
 Global $needConfigCheck = False
 Global $runtime = False
 Global $logedin = True
+Global $ctrlmenu[3]
+Global $helpmenu[3]
+Global $okbutton
 Global $login
 Global $username
 Global $password
 Global $msg
+Global $edit_content
+Global $edit = 0
 
 Global $configProcessPoint = 0
 Global $configCheckPoint = 0
@@ -48,8 +53,6 @@ Global $width_faktor
 Global $height_faktor
 Global $configEndPoint = $configSize
 Global $diffPosition[4]
-
-
 
 ;Convert Pref to localconf
 Func writeConfigPoint($point)
@@ -134,12 +137,14 @@ Func createGUI()
 	GUICreate("Titanz ©2012 Lennix, Zero, Neltor", 350, 200, -1, -1, -1, $WS_EX_TOPMOST)
 	GUICtrlCreatePic("4.jpg", 0, 0, 350, 200)
 	GUICtrlSetState(-1,$GUI_DISABLE)
+	Menucreate()
 EndFunc
 
 ;login eingaben in Global username und password gespeichert
 Func loginBotGUI()
-
-	GUICtrlCreatePic("2.jpg", 249, 0, 101, 102)
+	GUIDelete()
+	createGUI()
+	GUICtrlCreatePic("logo.bmp", 249, 0, 101, 102)
 	GUICtrlSetState(-1,$GUI_DISABLE)
 	$head = GUICtrlCreateLabel("TITANz -> login", 100, 10)
 	GUICtrlSetColor($head, $color_white)
@@ -156,17 +161,13 @@ EndFunc
 
 ;ready
 Func readyBotGUI()
-	GUICtrlCreatePic("2.jpg", 249, 0, 101, 102)
+	GUIDelete()
+	createGUI()
+	GUICtrlCreatePic("logo.bmp", 249, 0, 101, 102)
 	GUICtrlSetState(-1,$GUI_DISABLE)
 	$labelReady = GUICtrlCreateLabel("READY", 135, 20)
 	GUICtrlSetColor($labelReady, $color_green)
 	GUICtrlSetBkColor(-1,-2)
-	$ctrlmenu = GUICtrlCreateMenu("Control center")
-	GUICtrlCreateMenuItem("Create localconf manually",$ctrlmenu)
-	GUICtrlCreateMenuItem("Create images manually",$ctrlmenu)
-	$helpmenu = GUICtrlCreateMenu("Help")
-	GUICtrlCreateMenuItem("Credits",$helpmenu)
-	GUICtrlCreateMenuItem("Page",$helpmenu)
 	$f5 = GUICtrlCreateLabel("push F5  to start", 90, 80)
 	GUICtrlSetColor($f5, $color_white)
 	GUICtrlSetBkColor(-1,-2)
@@ -182,6 +183,106 @@ Func stopBotGUI()
 	$labelReady = GUICtrlCreateLabel("STOPPED", 135, 20)
 	GUICtrlSetColor($labelReady, $color_yellow)
 	GUICtrlCreateLabel("push F5  to continue", 90, 80)
+EndFunc
+
+Func GUIcheck($msg)
+	Switch $msg
+		Case $ctrlmenu[1]
+			Guicreateinfo()
+
+		Case $ctrlmenu[2]
+			GuiCreateImages()
+
+		Case $helpmenu[1]
+			GuiCredits()
+
+		Case $helpmenu[2]
+			ShellExecute("http://www.d3ahbot.com")
+
+		Case $okbutton
+			GuiCreateLocalconf()
+
+	EndSwitch
+EndFunc
+
+Func Menucreate()
+	$ctrlmenu[0] = GUICtrlCreateMenu("Control center")
+	$ctrlmenu[1] = GUICtrlCreateMenuItem("Create localconf manually",$ctrlmenu[0])
+	$ctrlmenu[2] = GUICtrlCreateMenuItem("Create images manually",$ctrlmenu[0])
+	$helpmenu[0] = GUICtrlCreateMenu("Help")
+	$helpmenu[1] = GUICtrlCreateMenuItem("Credits",$helpmenu[0])
+	$helpmenu[2] = GUICtrlCreateMenuItem("Page",$helpmenu[0])
+EndFunc
+
+Func writeconf($pos,$color)
+
+	If $edit = Not 0 Then
+		$edit_content = "[" & $configProperties[$configProcessPoint] & "]" & @CRLF
+		$edit_content &= "x = " & $pos[0] & @CRLF
+		$edit_content &= "y = "& $pos[1] & @CRLF
+		$edit_content &= "color = " & $color
+		ConsoleWrite($edit_content)
+		$edit = GUICtrlCreateEdit($edit_content,0,0,100,100,$ES_READONLY)
+
+		If $configProcessPoint <= $configNormalEntries Then
+			IniWrite($Ini, $configProperties[$configProcessPoint], "x", $pos[0])
+			IniWrite($Ini, $configProperties[$configProcessPoint], "y", $pos[1])
+			IniWrite($Ini, $configProperties[$configProcessPoint], "color", $color)
+		EndIf
+
+		If $configProcessPoint = $configNormalEntries Then
+			$filterentrydiff_1 = IniRead($Ini, "filter_1", "y", 0)
+			$filterentrydiff_2 = IniRead($Ini, "filter_2", "y", 0)
+			IniWrite($Ini,"diff", "filterentrydiff",Round($filterentrydiff_2 - $filterentrydiff_1))
+
+			$entrydiff_1 = IniRead($Ini, "filter_dropdownwindow_entry1", "y", 0)
+			$entrydiff_2 = IniRead($Ini, "filter_dropdownwindow_entry2", "y", 0)
+			IniWrite($Ini,"diff", "entrydiff",Round($entrydiff_2 - $entrydiff_1))
+
+			$itemdiff_1 = IniRead($Ini, "firstitem", "y", 0)
+			$itemdiff_2 = IniRead($Ini, "seconditem", "y", 0)
+			IniWrite($Ini,"diff", "itemdiff",Round($itemdiff_2 - $itemdiff_1))
+		EndIf
+
+		$configProcessPoint += 1
+	EndIf
+
+EndFunc
+
+Func GuiCreateLocalconf()
+
+	If FileExists($Ini) Then
+		FileDelete($ini)
+	EndIf
+
+	GUIDelete()
+	createGUI()
+	GUICtrlCreatePic("logo.bmp", 249, 0, 101, 102)
+	GUICtrlSetState(-1,$GUI_DISABLE)
+	$labelReady = GUICtrlCreateLabel("testesetset", 135, 20)
+	GUICtrlSetColor($labelReady, $color_green)
+	GUICtrlSetBkColor(-1,-2)
+	$edit = GUICtrlCreateEdit($edit_content,0,0,100,100,$ES_READONLY)
+
+
+	GUISetState(@SW_SHOW)
+	;sleep(500000)
+EndFunc
+
+Func Guicreateinfo()
+	GUIDelete()
+	createGUI()
+	$labelReady = GUICtrlCreateLabel("By clicking the OK Button your localconf will be deleted!!!", 50, 20)
+	GUICtrlSetColor($labelReady, $color_white)
+	GUICtrlSetBkColor(-1,-2)
+	$okbutton = GUICtrlCreateButton("OK",120,50,50)
+	GUISetState(@SW_SHOW)
+EndFunc
+
+Func GuiCreateImages()
+EndFunc
+
+Func GuiCredits()
 EndFunc
 
 #cs
