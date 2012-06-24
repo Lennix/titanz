@@ -31,6 +31,12 @@ hotkeyset("{F7}","quit")
 startup()
 
 While 1
+	$msg = GUIGetMsg()
+
+	if $msg = Not 0 Then
+		GUIcheck($msg)
+	EndIf
+
 	if $start then
 		$g_searchIdx += 1
 		If $g_searchIdx > $g_maxSearchIdx Then
