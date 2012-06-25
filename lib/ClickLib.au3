@@ -32,22 +32,15 @@ Func SetResellPrice($bid, $buyout)
 EndFunc
 
 Func ChooseFilter($nr, $entry, $value)
+	debug("Choosing filter " & $nr & " for " & $entry & " - " & $value)
 	If $entry == "" Then Return 0
 	If $entry == "Empty Sockets" Then $g_socketSearch = true
 	If $filterInfo[$nr-1][0] <> $entry Then
 		D3Click("filter_" & $nr) ; Open filter
-		For $x = 0 To 10
-			$tmpEntry = $entry
-			If $entry == "Empty Sockets" Then $tmpEntry = "Has Sockets"
-			$position = LookFor($tmpEntry,1)
-			If Not @Error Then
-				D3Click($position)
-				$filterInfo[$nr-1][0] = $entry
-				ExitLoop
-			EndIf
-			D3Scroll("filter_" & $nr, "down", 5)
-			If $x == 10 Then Return False
-		Next
+		If Not lookFor($nr, $entry, 1) Then
+			D3Click("filter_" & $nr) ; close filter
+			Return False
+		EndIf
 	EndIf
 
 	If $filterInfo[$nr-1][1] <> $value Then
@@ -75,11 +68,11 @@ Func Buy($nr)
 	D3Click("firstitem", $nr, 1, false, "itemdiff")
 	D3Click("buyout")
 	debug("Buying " & $nr)
-	d3sleep(5000)
+	d3sleep(2000)
 	D3Click("accept_buyout")
-	d3sleep(2000)
+	d3sleep(1000)
 	D3Click("accept_buyout_notify")
-	d3sleep(2000)
+	d3sleep(1000)
 	Return True
 EndFunc
 
@@ -87,11 +80,11 @@ Func Bid($nr)
 	D3Click("firstitem", $nr, 1, false, "itemdiff")
 	D3Click("bid")
 	debug("Bidding " & $nr)
-	d3sleep(5000)
+	d3sleep(2000)
 	D3Click("accept_buyout")
-	d3sleep(2000)
+	d3sleep(1000)
 	D3Click("accept_buyout_notify")
-	d3sleep(2000)
+	d3sleep(1000)
 	Return True
 EndFunc
 
