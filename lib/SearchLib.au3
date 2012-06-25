@@ -28,15 +28,20 @@ Func ReloadSearchList()
 	loadSearchList()
 EndFunc
 
-Func Reset($full = false)
-	If $full Then ReloadSearchList()
+Func Reset($mode = 0)
+	If $mode > 0 Then ReloadSearchList()
+	If $mode > 1 Then
+		For $i = 1 To 3
+			ResetFilter($i)
+		Next
+	EndIf
 	If IsArray($knownItems) Then ReDim $knownItems[1][5]
 	$realtimepurchase = False
+	$g_socketSearch = false
 EndFunc
 
 Func Search($idx)
 	Local $type, $subType, $rarity, $stats, $purchase
-	$g_socketSearch = false
 	Reset()
 	If Not GetFromSearchList($idx, $type, $subtype, $rarity, $stats, $purchase) Then Return False
 	$price = $purchase[1]
@@ -152,15 +157,19 @@ Func GetData(ByRef $items)
 EndFunc
 
 Func CheckItem($item, $nr)
-	If $item[4] <> 102 Or Not $realtimepurchase Then Return True ; already sold
 	If $g_socketSearch Then
 		lookForSocket($nr, $item[2])
 		If @Error Then
 			Return True
 		Else
 			debug("Bid: " & $item[1] & ", BO: " & $item[0] & ", Empty socket!")
+			If $item[4] <> 102 Then
+				debug("Already sold!")
+				Return True
+			EndIf
 		EndIf
 	EndIf
+	If $item[4] <> 102 Or Not $realtimepurchase Then Return True ; already sold
 	If UBound($knownItems) > 1 Then ; multi-search
 		$found = false
 		For $i = 0 To UBound($knownItems)-1

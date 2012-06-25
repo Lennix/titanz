@@ -65,6 +65,9 @@ EndFunc
 
 Func StartIt()
 	$start = Not $start
+	If $start Then
+		Reset(2)
+	EndIf
 EndFunc
 
 Func startup()
@@ -91,7 +94,43 @@ Func feierabend()
 	_MemoryClose($mem)
 EndFunc
 
-Func lookFor($stat,$center = 0)
+Func lookFor($nr, $entry, $center = 0)
+	; get filter context and look into settings if we already know the answer
+	#cs
+	$input = IniRead("conf/settings.ini", "lookFor", $g_searchList[$g_searchIdx][1] & "-" & $g_searchList[$g_searchIdx][2] & "-" & $entry, "")
+	If StringLen($input) > 0 Then ; we already know what to do
+		$input = StringSplit($input, ",") ; x,y, scrollamount
+		If Not @Error Then
+			If $input[3] > 0 Then
+				D3Scroll("filter_" & $nr, "down", 5*$input[3])
+				D3sleep(50)
+			EndIf
+			Dim $position[3]
+			$position[0] = $input[1]
+			$position[1] = $input[2]
+			D3Click($position)
+			$filterInfo[$nr-1][0] = $entry
+			Return True
+		EndIf
+	EndIf
+	#ce
+	; in case we dont know that yet
+	For $x = 0 To 10
+		$tmpEntry = $entry
+		If $entry == "Empty Sockets" Then $tmpEntry = "Has Sockets"
+		$position = _LookFor($tmpEntry,1)
+		If Not @Error Then
+			D3Click($position)
+			;IniWrite("conf/settings.ini", "lookFor", $g_searchList[$g_searchIdx][1] & "-" & $g_searchList[$g_searchIdx][2] & "-" & $entry, $position[0] & "," & $position[1] & "," & $x)
+			$filterInfo[$nr-1][0] = $entry
+			Return True
+		EndIf
+		D3Scroll("filter_" & $nr, "down", 5)
+		If $x == 10 Then Return False
+	Next
+EndFunc
+
+Func _lookFor($stat, $center = 0)
 	$left = IniRead($g_confPath, "filterwindow", "left", 0)
 	$top = IniRead($g_confPath, "filterwindow", "top", 0)
 	$right = IniRead($g_confPath, "filterwindow", "right", 0)

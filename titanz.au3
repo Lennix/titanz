@@ -19,14 +19,12 @@ Global $g_sid = 0
 #include "lib/ComLib.au3"
 #include "lib/SearchLib.au3"
 
-
-
 HotKeySet("{F10}", "mouseinfo")
 HotKeySet("{F11}", "StartIt")
-hotkeyset("{F4}","DebugPages")
-hotkeyset("{F6}","stop")
-hotkeyset("{F5}","start")
-hotkeyset("{F7}","quit")
+HotKeySet("{F4}","DebugPages")
+HotKeySet("{F6}","stop")
+HotKeySet("{F5}","start")
+HotKeySet("{F7}","quit")
 
 startup()
 
@@ -34,14 +32,14 @@ While 1
 	$msg = GUIGetMsg()
 
 	if $msg = Not 0 Then
-		GUIcheck($msg)
+		;GUIcheck($msg)
 	EndIf
 
 	if $start then
 		$g_searchIdx += 1
 		If $g_searchIdx > $g_maxSearchIdx Then
 			$g_searchIdx = 1
-			Reset(true)
+			Reset(1)
 		EndIf
 		Search($g_searchIdx)
 		D3sleep(2000)

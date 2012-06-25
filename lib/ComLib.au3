@@ -29,7 +29,6 @@ Func loadSearchList()
 		$subType = $inner[2]
 		$rarity = $inner[3]
 		$t_filter = StringSplit($inner[4],",")
-		If @Error Then ContinueLoop
 		Dim $filter[$t_filter[0]][2]
 		For $j = 0 To $t_filter[0]-1
 			$innerArray = StringSplit($t_filter[$j+1], "-")
