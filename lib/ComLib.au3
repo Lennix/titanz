@@ -18,17 +18,18 @@ EndFunc
 
 Func loadSearchList()
 	$input = iGet("listItems", "sid=" & $g_sid)
-	if @Error Then Return debug("Noooo!")
+	if @Error Then Return debug("Error getting item list from backend!")
 	$input = $input[2][1]
 	$search = StringSplit($input, "|") ; main delimiter
 	If @Error Then Return False
 	For $i = 1 To $search[0]
 		$inner = StringSplit($search[$i], ";") ; inner delimiter
-		If @Error Or $inner[0] <> 5 Then ContinueLoop
-		$itemType = $inner[1]
-		$subType = $inner[2]
-		$rarity = $inner[3]
-		$t_filter = StringSplit($inner[4],",")
+		If @Error Or $inner[0] <> 6 Then ContinueLoop
+		$class = $inner[1]
+		$itemType = $inner[2]
+		$subType = $inner[3]
+		$rarity = $inner[4]
+		$t_filter = StringSplit($inner[5],",")
 		Dim $filter[$t_filter[0]][2]
 		For $j = 0 To $t_filter[0]-1
 			$innerArray = StringSplit($t_filter[$j+1], "-")
@@ -36,9 +37,9 @@ Func loadSearchList()
 			$filter[$j][0] = $innerArray[1]
 			$filter[$j][1] = $innerArray[2]
 		Next
-		$purchase = StringSplit($inner[5],",")
+		$purchase = StringSplit($inner[6],",")
 		If @Error Then ContinueLoop
-		addToSearchList($itemType, $subType, $rarity, $filter, $purchase)
+		addToSearchList($class, $itemType, $subType, $rarity, $filter, $purchase)
 	Next
 EndFunc
 

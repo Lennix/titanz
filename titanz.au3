@@ -25,6 +25,7 @@ HotKeySet("{F4}","DebugPages")
 HotKeySet("{F6}","stop")
 HotKeySet("{F5}","start")
 HotKeySet("{F7}","quit")
+HotKeySet("{F8}", "craft")
 
 startup()
 

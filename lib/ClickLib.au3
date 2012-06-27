@@ -1,3 +1,16 @@
+Func ChooseClass($class)
+	If $debugOut Then debug("Choosing class " & $class)
+	D3Click("class")
+	$position = LookFor($class, "classsearch", 1)
+	If @Error Then
+		D3Click("class")
+		Return False ; couldn't find desired class
+	Else
+		D3Click($position)
+		Return True
+	EndIf
+EndFunc
+
 Func ChooseItemType($type, $subtype = "All") ; 1Hand, 2Hand, Offhand, Armor, Follower Special
 	; Get data
 	If Not IsNumber($subtype) Then $subtype = GetID($type, $subtype)
@@ -32,12 +45,12 @@ Func SetResellPrice($bid, $buyout)
 EndFunc
 
 Func ChooseFilter($nr, $entry, $value)
-	debug("Choosing filter " & $nr & " for " & $entry & " - " & $value)
+	If $debugOut Then debug("Choosing filter " & $nr & " for " & $entry & " - " & $value)
 	If $entry == "" Then Return 0
 	If $entry == "Empty Sockets" Then $g_socketSearch = true
 	If $filterInfo[$nr-1][0] <> $entry Then
 		D3Click("filter_" & $nr) ; Open filter
-		If Not lookFor($nr, $entry, 1) Then
+		If Not lookForFilter($nr, $entry, 1) Then
 			D3Click("filter_" & $nr) ; close filter
 			Return False
 		EndIf
@@ -86,6 +99,13 @@ Func Bid($nr)
 	D3Click("accept_buyout_notify")
 	d3sleep(1000)
 	Return True
+EndFunc
+
+Func craft()
+	Do
+		D3Click("craftgem")
+		D3sleep(3000)
+	Until Not CheckColor("craftgem")
 EndFunc
 
 #cs

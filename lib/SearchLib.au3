@@ -1,29 +1,31 @@
 ; All search-related stuff here which doesn't fit into the other categories
 
-func addToSearchList($itemType, $subType, $rarity, $filter, $purchase)
+func addToSearchList($class, $itemType, $subType, $rarity, $filter, $purchase)
 	$idx = UBound($g_searchList)
-	ReDim $g_searchList[$idx+1][6]
+	ReDim $g_searchList[$idx+1][7]
 	$g_maxSearchIdx = $idx
 
-	$g_searchList[$idx][1] = $itemType
-	$g_searchList[$idx][2] = $subType
-	$g_searchList[$idx][3] = $rarity
-	$g_searchList[$idx][4] = $filter
-	$g_searchList[$idx][5] = $purchase
+	$g_searchList[$idx][1] = $class
+	$g_searchList[$idx][2] = $itemType
+	$g_searchList[$idx][3] = $subType
+	$g_searchList[$idx][4] = $rarity
+	$g_searchList[$idx][5] = $filter
+	$g_searchList[$idx][6] = $purchase
 EndFunc
 
-Func GetFromSearchList($idx, ByRef $itemType, ByRef $subType, ByRef $rarity, ByRef $filter, ByRef $purchase)
+Func GetFromSearchList($idx, ByRef $class, ByRef $itemType, ByRef $subType, ByRef $rarity, ByRef $filter, ByRef $purchase)
 	If $idx > $g_maxSearchIdx Then Return False
-	$itemType = $g_searchList[$idx][1]
-	$subType = $g_searchList[$idx][2]
-	$rarity = $g_searchList[$idx][3]
-	$filter = $g_searchList[$idx][4]
-	$purchase = $g_searchList[$idx][5]
+	$class = $g_searchList[$idx][1]
+	$itemType = $g_searchList[$idx][2]
+	$subType = $g_searchList[$idx][3]
+	$rarity = $g_searchList[$idx][4]
+	$filter = $g_searchList[$idx][5]
+	$purchase = $g_searchList[$idx][6]
 	Return True
 EndFunc
 
 Func ReloadSearchList()
-	ReDim $g_searchList[1][6]
+	ReDim $g_searchList[1][7]
 	$g_maxSearchIdx = 0
 	loadSearchList()
 EndFunc
@@ -41,12 +43,13 @@ Func Reset($mode = 0)
 EndFunc
 
 Func Search($idx)
-	Local $type, $subType, $rarity, $stats, $purchase
+	Local $class, $type, $subType, $rarity, $stats, $purchase
 	Reset()
-	If Not GetFromSearchList($idx, $type, $subtype, $rarity, $stats, $purchase) Then Return False
+	If Not GetFromSearchList($idx, $class, $type, $subtype, $rarity, $stats, $purchase) Then Return False
 	$price = $purchase[1]
 	$checkbid = $purchase[2]
 	$checkBuyout = $purchase[3]
+	ChooseClass($class)
 	ChooseItemType($type, $subtype)
 	ChooseRarity($rarity)
 	SetPrice($price)
@@ -153,13 +156,14 @@ Func GetData(ByRef $items)
 			$items[$currMax][$y] = $item[$y]
 		Next
 	Next
+	If $g_socketSearch Then D3Move("home")
 	Return True
 EndFunc
 
 Func CheckItem($item, $nr)
+	If $item[4] <> 102 And $item[4] <> 104 Then Return True ; invalid item
 	If $g_socketSearch Then
-		lookForSocket($nr, $item[2])
-		If @Error Then
+		If Not lookForSocket($nr, $item[2]) Then
 			Return True
 		Else
 			debug("Bid: " & $item[1] & ", BO: " & $item[0] & ", Empty socket!")
@@ -192,7 +196,7 @@ Func GetItemData($nr)
 	Dim $return[5]
 	Local $offsets[5] = [0, 0, 4, 40, 32+280*$nr]
 
-	$basepointer = _MemoryPointerRead($baseadd + 0xFC7590, $mem, $offsets)
+	$basepointer = _MemoryPointerRead($baseadd + 0xFC85B0, $mem, $offsets)
 	If @Error Then
 		debug("Error reading memory")
 		Return 0
