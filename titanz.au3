@@ -30,10 +30,11 @@ HotKeySet("{F8}", "craft")
 startup()
 
 While 1
-	$msg = GUIGetMsg()
-
-	if $msg = Not 0 Then
+	$msg = GUIGetMsg(1)
+	;ConsoleWrite($msg[1])
+	if $msg[0] = Not 0 Then
 		GUIcheck($msg)
+
 	EndIf
 
 	if $start then

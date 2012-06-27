@@ -51,7 +51,9 @@ Local $picbutton
 Local $neustring = ""
 Local $hImage
 Local $image
-
+Local $filterwindow = False
+Local $socketsearch = False
+Local $main
 
 Global $configProcessPoint = 0
 Global $configCheckPoint = 0
@@ -65,7 +67,7 @@ Global $combo_amount = 49
 Global $filterlist_combo[$combo_amount]
 
 ;Convert Pref to localconf
-Func writeConfigPoint($point)
+Func ConvertPreftoLocalconf($point)
 	$datei = FileOpen(@MyDocumentsDir & "\Diablo III\D3Prefs.txt")
 
 	$res_width = StringSplit(FileReadLine($datei,10),'"')
@@ -141,44 +143,114 @@ Func writeConfigPoint($point)
 
 EndFunc
 
-Func writeconf($pos,$color)
+Func WriteConfManually($pos,$color)
 	If $edit = Not 0 Then
-		$edit_content = "[" & $configProperties[$configProcessPoint] & "]" & @CRLF
-		$edit_content &= "x = " & $pos[0] & @CRLF
-		$edit_content &= "y = "& $pos[1] & @CRLF
-		$edit_content &= "color = " & $color
-		ConsoleWrite($edit_content)
-		$edit = GUICtrlCreateEdit($edit_content,0,0,100,100,$ES_READONLY)
+		Switch $configProperties[$configProcessPoint]
 
-		If $configProcessPoint <= $configNormalEntries Then
-			IniWrite($g_confPath, $configProperties[$configProcessPoint], "x", $pos[0])
-			IniWrite($g_confPath, $configProperties[$configProcessPoint], "y", $pos[1])
-			IniWrite($g_confPath, $configProperties[$configProcessPoint], "color", $color)
-		EndIf
+			Case "filterwindow"
+				If $filterwindow = False Then
+					IniWrite($g_confPath, $configProperties[$configProcessPoint], "left", $pos[0])
+					IniWrite($g_confPath, $configProperties[$configProcessPoint], "top", $pos[1])
+					$filterwindow = True
 
-		If $configProcessPoint = $configNormalEntries Then
-			$filterentrydiff_1 = IniRead($g_confPath, "filter_1", "y", 0)
-			$filterentrydiff_2 = IniRead($g_confPath, "filter_2", "y", 0)
-			IniWrite($g_confPath,"diff", "filterentrydiff",Round($filterentrydiff_2 - $filterentrydiff_1))
+					$edit_content = "[" & $configProperties[$configProcessPoint] & "]" & @CRLF
+					$edit_content &= "left = " & $pos[0] & @CRLF
+					$edit_content &= "top = "& $pos[1] & @CRLF
+					ConsoleWrite($edit_content)
+					$edit = GUICtrlCreateEdit($edit_content,0,0,100,100,$ES_READONLY)
 
-			$entrydiff_1 = IniRead($g_confPath, "filter_dropdownwindow_entry1", "y", 0)
-			$entrydiff_2 = IniRead($g_confPath, "filter_dropdownwindow_entry2", "y", 0)
-			IniWrite($g_confPath,"diff", "entrydiff",Round($entrydiff_2 - $entrydiff_1))
+				ElseIf $filterwindow = True Then
+					IniWrite($g_confPath, $configProperties[$configProcessPoint], "right", $pos[0])
+					IniWrite($g_confPath, $configProperties[$configProcessPoint], "bottom", $pos[1])
+					$filterwindow = False
 
-			$itemdiff_1 = IniRead($g_confPath, "firstitem", "y", 0)
-			$itemdiff_2 = IniRead($g_confPath, "seconditem", "y", 0)
-			IniWrite($g_confPath,"diff", "itemdiff",Round($itemdiff_2 - $itemdiff_1))
+					$edit_content &= "right = " & $pos[0] & @CRLF
+					$edit_content &= "bottom = "& $pos[1] & @CRLF
+					ConsoleWrite($edit_content)
+					$edit = GUICtrlCreateEdit($edit_content,0,0,100,100,$ES_READONLY)
 
-			$edit = 0
-		EndIf
+					$configProcessPoint += 1
 
-		$configProcessPoint += 1
+				EndIf
+
+			Case "socketsearch"
+				If $socketsearch = False Then
+					IniWrite($g_confPath, $configProperties[$configProcessPoint], "left", $pos[0])
+					IniWrite($g_confPath, $configProperties[$configProcessPoint], "top", $pos[1])
+					$socketsearch = True
+
+					$edit_content = "[" & $configProperties[$configProcessPoint] & "]" & @CRLF
+					$edit_content &= "left = " & $pos[0] & @CRLF
+					$edit_content &= "top = "& $pos[1] & @CRLF
+					ConsoleWrite($edit_content)
+					$edit = GUICtrlCreateEdit($edit_content,0,0,100,100,$ES_READONLY)
+
+				ElseIf $socketsearch = True Then
+					IniWrite($g_confPath, $configProperties[$configProcessPoint], "right", $pos[0])
+					IniWrite($g_confPath, $configProperties[$configProcessPoint], "bottom", $pos[1])
+					$socketsearch = False
+
+					$edit_content &= "right = " & $pos[0] & @CRLF
+					$edit_content &= "bottom = "& $pos[1] & @CRLF
+					ConsoleWrite($edit_content)
+					$edit = GUICtrlCreateEdit($edit_content,0,0,100,100,$ES_READONLY)
+
+					$configProcessPoint += 1
+
+				EndIf
+
+			Case "bid"
+				IniWrite($g_confPath, $configProperties[$configProcessPoint], "x", $pos[0])
+				IniWrite($g_confPath, $configProperties[$configProcessPoint], "y", $pos[1])
+				IniWrite($g_confPath, $configProperties[$configProcessPoint], "color", $color)
+
+				$filterentrydiff_1 = IniRead($g_confPath, "filter_1", "y", 0)
+				$filterentrydiff_2 = IniRead($g_confPath, "filter_2", "y", 0)
+				IniWrite($g_confPath,"diff", "filterentrydiff",Round($filterentrydiff_2 - $filterentrydiff_1))
+
+				$entrydiff_1 = IniRead($g_confPath, "filter_dropdownwindow_entry1", "y", 0)
+				$entrydiff_2 = IniRead($g_confPath, "filter_dropdownwindow_entry2", "y", 0)
+				IniWrite($g_confPath,"diff", "entrydiff",Round($entrydiff_2 - $entrydiff_1))
+
+				$itemdiff_1 = IniRead($g_confPath, "firstitem", "y", 0)
+				$itemdiff_2 = IniRead($g_confPath, "seconditem", "y", 0)
+				IniWrite($g_confPath,"diff", "itemdiff",Round($itemdiff_2 - $itemdiff_1))
+
+				$edit_content = "[" & $configProperties[$configProcessPoint] & "]" & @CRLF
+				$edit_content &= "x = " & $pos[0] & @CRLF
+				$edit_content &= "y = "& $pos[1] & @CRLF
+				$edit_content &= "color = " & $color
+				$edit_content &= @CRLF
+				$edit_content &= "filterentrydiff = " & Round($filterentrydiff_2 - $filterentrydiff_1) & @CRLF
+				$edit_content &= "entrydiff = " & Round($entrydiff_2 - $entrydiff_1) & @CRLF
+				$edit_content &= "itemdiff = " & Round($itemdiff_2 - $itemdiff_1)
+				ConsoleWrite($edit_content)
+				$edit = GUICtrlCreateEdit($edit_content,0,0,100,100,$ES_READONLY)
+
+				$edit = 0
+
+			Case Else
+				IniWrite($g_confPath, $configProperties[$configProcessPoint], "x", $pos[0])
+				IniWrite($g_confPath, $configProperties[$configProcessPoint], "y", $pos[1])
+				IniWrite($g_confPath, $configProperties[$configProcessPoint], "color", $color)
+
+				$edit_content = "[" & $configProperties[$configProcessPoint] & "]" & @CRLF
+				$edit_content &= "x = " & $pos[0] & @CRLF
+				$edit_content &= "y = "& $pos[1] & @CRLF
+				$edit_content &= "color = " & $color
+				ConsoleWrite($edit_content)
+				$edit = GUICtrlCreateEdit($edit_content,0,0,100,100,$ES_READONLY)
+				$configProcessPoint += 1
+
+		EndSwitch
+
+
 	EndIf
 EndFunc
 
 Func processConfig()
 	If not $configComplete Then
-		writeConfigPoint($configProcessPoint)
+		ConvertPreftoLocalconf($configProcessPoint)
 
 		$configProcessPoint += 1
 		;check if config is complete now
@@ -197,17 +269,21 @@ EndFunc
 #			 GUI			#
 #ce		#############		#
 Func Menucreate()
-	$ctrlmenu[0] = GUICtrlCreateMenu("Control center")
-	$ctrlmenu[1] = GUICtrlCreateMenuItem("Create localconf manually",$ctrlmenu[0])
-	$ctrlmenu[2] = GUICtrlCreateMenuItem("Create images manually",$ctrlmenu[0])
-	$helpmenu[0] = GUICtrlCreateMenu("Help")
-	$helpmenu[1] = GUICtrlCreateMenuItem("Credits",$helpmenu[0])
-	$helpmenu[2] = GUICtrlCreateMenuItem("Page",$helpmenu[0])
+	;$ctrlmenu[0] = GUICtrlCreateButton("Control center")
+	;GUICtrlSetBkColor ($ctrlmenu[0],$color_red)
+	;$ctrlmenu[1] = GUICtrlCreateButton("Create localconf manually",300,100,75,20)
+	;GUICtrlCreateButton("Create images manually",300,130,75,20)
+	;$helpmenu[0] = GUICtrlCreateMenu("Help")
+	;$helpmenu[1] = GUICtrlCreateButton("Credits",300,160,75,20)
+	;$helpmenu[2] = GUICtrlCreateButton("Page",300,190,75,20)
 EndFunc
 
 ;login eingaben in Global username und password gespeichert
 Func createGUI()
-	GUICreate("Titanz ©2012 Lennix, Zero, Neltor", 400, 300, -1, -1, -1, $WS_EX_TOPMOST)
+	$main = GUICreate("Titanz ©2012 Lennix, Zero, Neltor", 400, 300, -1, -1, -1, $WS_EX_TOPMOST)
+	$helpmenu[2] = GUICtrlCreateLabel("",268,0,132,70)
+	$ctrlmenu[1] = GUICtrlCreateLabel("",278,93,110,24)
+	$ctrlmenu[2] = GUICtrlCreateLabel("",278,124,110,24)
 	GUICtrlCreatePic("bg.jpg", 0, 0, 400, 300)
 	GUICtrlSetState(-1,$GUI_DISABLE)
 	Menucreate()
@@ -245,8 +321,8 @@ EndFunc
 Func readyBotGUI()
 	GUIDelete()
 	createGUI()
-	GUICtrlCreatePic("logo.bmp", 249, 0, 101, 102)
-	GUICtrlSetState(-1,$GUI_DISABLE)
+	;GUICtrlCreatePic("logo.bmp", 249, 0, 101, 102)
+	;GUICtrlSetState(-1,$GUI_DISABLE)
 	$labelReady = GUICtrlCreateLabel("READY", 135, 20)
 	GUICtrlSetColor($labelReady, $color_green)
 	GUICtrlSetBkColor(-1,-2)
@@ -267,7 +343,7 @@ Func stopBotGUI()
 EndFunc
 
 Func GUIcheck($msg)
-	Switch $msg
+	Switch $msg[0]
 		Case $ctrlmenu[1]
 			Guicreateinfo()
 
@@ -288,22 +364,34 @@ Func GUIcheck($msg)
 
 		Case $login
 			login()
+
+		Case $GUI_EVENT_CLOSE				;0x002A052A,0x001B02E0
+			ConsoleWrite($msg[1])
+			If $msg[1] = $main Then
+				Exit
+			Else
+				GUIDelete($msg)
+			EndIf
+
+
 	EndSwitch
 EndFunc
 
 Func check($pos,$color)
 	If $edit = Not 0 Then
-		writeconf($pos,$color)
+		WriteConfManually($pos,$color)
 	EndIf
 
 	If $combo = Not 0 Then
 		If $pos_time = 1 Then
 			$pos_2 = $pos
 			takepic($pos_1,$pos_2)
+			WinActivate("Diablo III")
 
 		ElseIf $pos_time = 0 Then
 			$pos_1 = $pos
 			$pos_time = 1
+			WinActivate("Titanz ©2012 Lennix, Zero, Neltor")
 		EndIf
 	EndIf
 EndFunc
@@ -321,10 +409,10 @@ Func GuiCreateImages()
 
 	while $counter < $combo_amount
 	;ConsoleWrite($counter)
-	ConsoleWrite($entry[$counter+1])
-		$filterlist_combo[$counter] = $entry[$counter+1]
-		GUICtrlSetData($combo,$entry[$counter+1] & "|","-")
 
+		$filterlist_combo[$counter] = $entry[$counter+1]
+		GUICtrlSetData($combo,$entry[$counter+1] & "|","None")
+		ConsoleWrite($combo)
 		$counter += 1
 	WEnd
 
@@ -332,6 +420,7 @@ Func GuiCreateImages()
 	GUICtrlSetState($combo,$GUI_DISABLE)
 
 	GUISetState(@SW_SHOW)
+	WinActivate("Diablo III")
 EndFunc
 
 Func takepic($pos_1,$pos_2)
@@ -345,8 +434,8 @@ Func takepic($pos_1,$pos_2)
     $iX = _GDIPlus_ImageGetWidth($hImage)
     $iY = _GDIPlus_ImageGetHeight($hImage)
 
-	$image = GUICreate("image",$iX,$iY,100,100)
-	GUISetState()
+	$image = GUICreate("image",$iX,$iY,100,100, -1, $WS_EX_TOPMOST)
+	GUISetState(@SW_SHOW)
 
 	$hGraphic = _GDIPlus_GraphicsCreateFromHWND ($image)
 	_GDIPLus_GraphicsDrawImage($hGraphic, $hImage, 0,0)
