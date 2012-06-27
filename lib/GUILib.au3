@@ -32,7 +32,7 @@ Global $configProcessPointLabel = ""
 Global $configComplete = False
 Global $needConfigCheck = False
 Global $runtime = False
-Global $logedin = False
+Global $logedin = True
 Global $ctrlmenu[3]
 Global $helpmenu[3]
 Global $okbutton
@@ -207,8 +207,8 @@ EndFunc
 
 ;login eingaben in Global username und password gespeichert
 Func createGUI()
-	GUICreate("Titanz ©2012 Lennix, Zero, Neltor", 350, 200, -1, -1, -1, $WS_EX_TOPMOST)
-	GUICtrlCreatePic("4.jpg", 0, 0, 350, 200)
+	GUICreate("Titanz ©2012 Lennix, Zero, Neltor", 400, 300, -1, -1, -1, $WS_EX_TOPMOST)
+	GUICtrlCreatePic("bg.jpg", 0, 0, 400, 300)
 	GUICtrlSetState(-1,$GUI_DISABLE)
 	Menucreate()
 EndFunc
