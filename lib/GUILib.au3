@@ -26,12 +26,13 @@ Global $Pref =@ScriptDir & "/conf/pref.ini"
 Global $g_socketKnown = FileRead("socketsearch")
 Global $g_confPath = @ScriptDir & "/conf/localconf.ini"
 Global $g_settings = @ScriptDir & "/conf/settings.ini"
+Local $DLLHashes = DllOpen(@ScriptDir & "/UDF/hashes.dll")
 Global $configProcessPointLabel = ""
 
 Global $configComplete = False
 Global $needConfigCheck = False
 Global $runtime = False
-Global $logedin = True
+Global $logedin = False
 Global $ctrlmenu[3]
 Global $helpmenu[3]
 Global $okbutton
@@ -51,6 +52,7 @@ Local $neustring = ""
 Local $hImage
 Local $image
 
+
 Global $configProcessPoint = 0
 Global $configCheckPoint = 0
 Global $diffPoint = 0
@@ -59,7 +61,7 @@ Global $height_faktor
 Global $configEndPoint = $configSize
 Global $diffPosition[4]
 
-Global $combo_amount = 44
+Global $combo_amount = 49
 Global $filterlist_combo[$combo_amount]
 
 ;Convert Pref to localconf
@@ -227,6 +229,16 @@ Func loginBotGUI()
 	GUICtrlSetBkColor(-1,-2)
 	$login = GUICtrlCreateButton("login",10,100,50,25)
 	GUISetState(@SW_SHOW)
+
+EndFunc
+
+Func login()
+	$password = GUICtrlRead($password)
+	ConsoleWrite($password &@lf)
+
+	$shash = "SHA256"
+
+    ConsoleWrite('String:'& $password &': Hash-'& $shash &':'& _Hashes($password, $shash, $DLLHashes, 0) & @lf)
 EndFunc
 
 ;ready
@@ -274,6 +286,8 @@ Func GUIcheck($msg)
 		Case $picbutton
 			SafeImage()
 
+		Case $login
+			login()
 	EndSwitch
 EndFunc
 
@@ -298,14 +312,18 @@ Func GuiCreateImages()
 	GUIDelete()
 	createGUI()
 	$counter = 0
-	$data = FileOpen($g_settings)
+	;$data = FileOpen($g_settings)
 
 	$combo = GUICtrlCreateCombo("None",10,10,200,10)
+ 	$entry_1 = IniRead($g_settings,"piclist","pic",1)
+
+	$entry = StringSplit($entry_1,",")
 
 	while $counter < $combo_amount
-		$entry = StringSplit(FileReadLine($data,113 + $counter),"=")
-		$filterlist_combo[$counter] = $entry[1]
-		GUICtrlSetData($combo,$entry[1] & "|","None")
+	;ConsoleWrite($counter)
+	ConsoleWrite($entry[$counter+1])
+		$filterlist_combo[$counter] = $entry[$counter+1]
+		GUICtrlSetData($combo,$entry[$counter+1] & "|","-")
 
 		$counter += 1
 	WEnd
@@ -333,12 +351,39 @@ Func takepic($pos_1,$pos_2)
 	$hGraphic = _GDIPlus_GraphicsCreateFromHWND ($image)
 	_GDIPLus_GraphicsDrawImage($hGraphic, $hImage, 0,0)
 
-_GDIPlus_GraphicsDispose($hGraphic)
+	_GDIPlus_GraphicsDispose($hGraphic)
 
 	GUICtrlSetState($combo,$GUI_ENABLE)
 
 	$pos_time = 0
 EndFunc
+
+
+
+
+;------------------------------------
+;$sValue = string or file (need to set sfile = 0 for string, sfile = 1 for file)
+;$sHash = hash algorthm
+;$DLLHashes = the dll location or handle
+;$sFile = 0 = string [default], 1 = file
+;------------------------------------
+Func _Hashes($sValue, $sHash = 'MD5', $DLLHashes = 'hashes.dll', $sFile = 0)
+    Local $aValue[1], $sSplit, $hashes = Random(-100,100) & 'hashes.txt'
+    If $sFile = 1 And FileExists($sValue) Then $hashes = $sValue
+    If $sFile = 0 Then FileWrite($hashes,$sValue) ;seems to only want files so well write a temp one
+    $aValue = DllCall($DLLHashes, 'str', 'testit', 'str', $hashes, 'str',$sHash, 'int', false)
+    If $sFile = 0 Then FileDelete($hashes) ;then delete it
+    If Not @error And IsArray($aValue) Then
+        $sSplit = StringSplit($aValue[0],@LF) ;extract hash string
+        If Not @error Then $aValue[0] = StringTrimRight($sSplit[1],1)
+        If StringInStr($aValue[0],'Error:') Then Return SetError(1,0,0)
+        Return $aValue[0]
+    EndIf
+    SetError(1,0,0)
+EndFunc
+
+
+
 
 Func SafeImage()
 	$test = GUICtrlRead($combo)
