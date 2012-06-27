@@ -33,7 +33,7 @@ While 1
 	$msg = GUIGetMsg()
 
 	if $msg = Not 0 Then
-		;GUIcheck($msg)
+		GUIcheck($msg)
 	EndIf
 
 	if $start then
@@ -45,7 +45,7 @@ While 1
 		Search($g_searchIdx)
 		D3sleep(2000)
 	EndIf
-	D3sleep(200)
+	D3sleep(25)
 WEnd
 
 feierabend()
