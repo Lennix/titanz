@@ -6,8 +6,10 @@ EndFunc
 
 Func mouseinfo()
 	$pos = MouseGetPos()
-	sleep(2000)
+	$color = PixelGetColor($pos[0],$pos[1])
+	sleep(200)
 	debug($pos[0] & "," & $pos[1] & ":" & PixelGetColor($pos[0], $pos[1]))
+	check($pos,$color)
 EndFunc
 
 Func D3Click($position, $subpos = -1, $clicks = 1, $checkcolor = false, $diff = "entrydiff")
