@@ -134,13 +134,15 @@ Func ScanPages()
 	Dim $items[1][5]
 	While 1
 		If Not GetData($items) Then ExitLoop
+		Do
+			D3Sleep(50)
+		Until $g_queriesperhour < 800
 		If Not D3Click("next_page", -1, 1, true) Then ExitLoop ; Next page
 		$timer = TimerInit()
 		Do
 			D3Sleep(20)
 			;If Not CheckColor("prev_page") And Not CheckColor("next_page") Then ExitLoop
 		Until CheckColor("prev_page") Or TimerDiff($timer) > 5000
-		D3Sleep(250)
 	WEnd
 	CleanItems($items)
 	Return $items
@@ -223,6 +225,29 @@ Func GetItemData($nr)
 	Return $return
 EndFunc
 
+Func GetItemDesc()
+	Dim $return[5]
+	Local $offsets[5] = [0, 4, 12, 8, 20]
+
+	$itemDesc = _MemoryPointerRead($baseadd + 0xEEA1A8, $mem, $offsets)
+	If @Error Then
+		debug("Error reading memory")
+		Return 0
+	EndIf
+
+	$itemDesc = $itemDesc[0]
+
+	$return[0] = _MemoryRead($itemDesc, $mem, "char[512]") ; Basic Info
+	$return[1] = _MemoryRead(0x1AE3934C, $mem, "char[10]") ; Armor / DPS
+	$return[2] = _MemoryRead(0x1AE3948C, $mem, "char[512]") ; Socket
+	$return[3] = _MemoryRead(0x1AE396BC, $mem, "char[14]") ; Item Level
+	$return[4] = _MemoryRead(0x1AE39324, $mem, "char[64]") ; Item type
+
+	_ArrayDisplay($return)
+
+	Return $return
+EndFunc
+
 Func CleanItems(ByRef $items)
 	$max = UBound($items)-1
 	If $max > 12 Then
@@ -251,4 +276,17 @@ Func MergeItems($items1, $items2)
 		Next
 	Next
 	Return $items
+EndFunc
+
+; This function is called periodically
+Func Watchdog()
+	$item = GetItemData(0)
+	If IsArray($item) And $item[2] <> $g_wd_lastitemID And ($item[4] == 102 Or $item[4] == 104) Then ; we have new (valid) data
+		$g_wd_lastitemID = $item[2]
+		$g_querycount += 1
+	EndIf
+	If $g_querycount > 0 Then
+		$hours = TimerDiff($g_starttimer)/1000 / 60 / 60
+		$g_queriesperhour = $g_querycount / $hours
+	EndIf
 EndFunc

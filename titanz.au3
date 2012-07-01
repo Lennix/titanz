@@ -7,6 +7,10 @@ Global $g_socketSearch = false
 Global $g_socketKnown = FileRead("socketsearch")
 Global $g_confPath = "conf/localconf.ini"
 Global $g_sid = 0
+Global $g_starttimer = 0
+Global $g_querycount = 0
+Global $g_queriesperhour = 0
+Global $g_wd_lastitemID = 0
 
 #include "UDF/NomadMemory.au3"
 #include "UDF/ImageSearch.au3"

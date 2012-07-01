@@ -92,6 +92,17 @@ Func StartIt()
 	If $start Then
 		Reset(2)
 	EndIf
+	If $g_querycount > 0 Then
+		$seconds = TimerDiff($g_starttimer)/1000
+		$minutes = $seconds / 60
+		$hours = $minutes / 60
+		Debug("Time: " & Round($seconds) & "s, queries: " & $g_querycount)
+		debug("> " & $g_querycount / $seconds & " queries/s")
+		debug("> " & $g_querycount / $minutes & " queries/m")
+		debug("> " & $g_querycount / $hours & " queries/h")
+	EndIf
+	$g_starttimer = TimerInit()
+	$g_querycount = 0
 EndFunc
 
 Func startup()
@@ -112,6 +123,8 @@ Func startup()
 	Global $mem = _MemoryOpen($pid)
 	$module = "Diablo III.exe"
 	Global $baseadd = _MemoryModuleGetBaseAddress($pid, $module)
+
+	AdlibRegister("Watchdog", 100)
 EndFunc
 
 Func feierabend()
