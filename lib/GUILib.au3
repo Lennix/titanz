@@ -43,6 +43,10 @@ Global $msg
 Global $edit_content
 Global $edit = 0
 Global $picedit = 0
+Global $g_console
+Global $g_console_data
+Global $g_status
+Global $g_status_data
 Local $combo = 0
 Local $pos_time = 0
 Local $pos_1
@@ -289,7 +293,8 @@ Func createGUI()
 	GUICtrlSetCursor($ctrlmenu[2],0)
 	GUICtrlCreatePic("bg.jpg", 0, 0, 400, 300)
 	GUICtrlSetState(-1,$GUI_DISABLE)
-	Menucreate()
+	$g_console = GUICtrlCreateEdit($g_console_data,0,200,260,100,BitOR($ES_AUTOVSCROLL, $WS_VSCROLL,$ES_READONLY))
+	;GUICtrlSetBkColor($edit,-2)
 EndFunc
 
 ;login eingaben in Global username und password gespeichert
@@ -298,14 +303,14 @@ Func loginBotGUI()
 	createGUI()
 	GUICtrlCreatePic("logo.bmp", 249, 0, 101, 102)
 	GUICtrlSetState(-1,$GUI_DISABLE)
-	$head = GUICtrlCreateLabel("TITANz -> login", 100, 10)
+	$head = GUICtrlCreateLabel("Welcome to titan-z", 100, 10)
 	GUICtrlSetColor($head, $color_white)
 	GUICtrlSetBkColor(-1,-2)
 	$username = GUICtrlCreateInput("username",10,40,200)
-	$password = GUICtrlCreateInput("password",10,65,200)
-	$further = GUICtrlCreateLabel("For further information go to www.d3ahbot.com", 10, 150)
-	GUICtrlSetColor($further, $color_white)
-	GUICtrlSetBkColor(-1,-2)
+	$password = GUICtrlCreateInput("password",10,65,200,20,$ES_PASSWORD)
+	;$further = GUICtrlCreateLabel("For further information go to www.d3ahbot.com", 10, 150)
+	;GUICtrlSetColor($further, $color_white)
+	;GUICtrlSetBkColor(-1,-2)
 	$login = GUICtrlCreateButton("login",10,100,50,25)
 	GUISetState(@SW_SHOW)
 
@@ -326,15 +331,19 @@ Func readyBotGUI()
 	createGUI()
 	;GUICtrlCreatePic("logo.bmp", 249, 0, 101, 102)
 	;GUICtrlSetState(-1,$GUI_DISABLE)
-	$labelReady = GUICtrlCreateLabel("READY", 135, 20)
-	GUICtrlSetColor($labelReady, $color_green)
+	$labelstatus = GUICtrlCreateLabel("Status:", 100, 20)
+	GUICtrlSetColor($labelstatus, $color_green)
 	GUICtrlSetBkColor(-1,-2)
-	$f5 = GUICtrlCreateLabel("push F5  to start", 90, 80)
-	GUICtrlSetColor($f5, $color_white)
+	$g_status = GUICtrlCreateLabel($g_status_data, 140, 20,40,20)
+	GUICtrlSetColor($g_status, $color_green)	
 	GUICtrlSetBkColor(-1,-2)
-	$f6 = GUICtrlCreateLabel("push F6  to stop while running", 90, 110)
-	GUICtrlSetColor($f6, $color_white)
-	GUICtrlSetBkColor(-1,-2)
+	;GUICtrlSetBkColor(-1,-2)
+	;$f5 = GUICtrlCreateLabel("push F5  to start", 90, 80)
+	;GUICtrlSetColor($f5, $color_white)
+	;GUICtrlSetBkColor(-1,-2)
+	;$f6 = GUICtrlCreateLabel("push F6  to stop while running", 90, 110)
+	;GUICtrlSetColor($f6, $color_white)
+	;GUICtrlSetBkColor(-1,-2)
 	GUISetState(@SW_SHOW)
 EndFunc
 
@@ -368,8 +377,7 @@ Func GUIcheck($msg)
 		Case $login
 			login()
 
-		Case $GUI_EVENT_CLOSE				;0x002A052A,0x001B02E0
-			ConsoleWrite($msg[1])
+		Case $GUI_EVENT_CLOSE				;0x002A052A,0x001B02E0			
 			If $msg[1] = $main Then
 				Exit
 			Else
@@ -400,8 +408,8 @@ Func check($pos,$color)
 EndFunc
 
 Func GuiCreateImages()
-	GUIDelete()
-	createGUI()
+	;GUIDelete()
+	;createGUI()
 	$counter = 0
 	;$data = FileOpen($g_settings)
 

@@ -7,6 +7,7 @@ Func connect()
 	; first login and get sessionID
 	$hRequest = iGet("login", "username=lennix&password=fa79010cf00be721e94e8d804c490f9b0658d5c7f69c0337dbdb4248dcfa3c9f")
 	If $hRequest[1][1] == "success" Then
+		GUICtrlSetData($g_status,"success")
 		$g_sid = $hRequest[2][1]
 		; load itemList
 		loadSearchList()
