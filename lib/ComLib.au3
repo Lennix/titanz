@@ -34,7 +34,7 @@ Func loadSearchList()
 		For $j = 0 To $t_filter[0]-1
 			$innerArray = StringSplit($t_filter[$j+1], "-")
 			If @Error Then ContinueLoop
-			$filter[$j][0] = $innerArray[1]
+			$filter[$j][0] = StringStripWS($innerArray[1], 8)
 			$filter[$j][1] = $innerArray[2]
 		Next
 		$purchase = StringSplit($inner[6],",")

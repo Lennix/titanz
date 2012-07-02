@@ -21,7 +21,6 @@ Func ChooseItemType($type, $subtype = "All") ; 1Hand, 2Hand, Offhand, Armor, Fol
 
 	D3Click("item_subtype") ; Open subfilter
 	D3Scroll("item_subtype", "up", 5) ; scroll up
-	;D3Click("item_subtype_scrollup", 9) ; Scroll up (reset)
 	D3Click("item_subtype", $subtype) ; click
 EndFunc
 
@@ -37,38 +36,24 @@ Func SetPrice($price)
 	If $price > -1 Then D3Send($price)
 EndFunc
 
-Func SetResellPrice($bid, $buyout)
-	D3Click("startingprice")
-	If $bid > -1 Then D3Send($bid)
-	D3Click("buyoutprice")
-	If $buyout > -1 Then D3Send($buyout)
-EndFunc
-
 Func ChooseFilter($nr, $entry, $value)
 	If $debugOut Then debug("Choosing filter " & $nr & " for " & $entry & " - " & $value)
 	If $entry == "" Then Return 0
-	If $entry == "Empty Sockets" Then $g_socketSearch = true
-	If $filterInfo[$nr-1][0] <> $entry Then
-		D3Click("filter_" & $nr) ; Open filter
-		If Not lookForFilter($nr, $entry, 1) Then
-			D3Click("filter_" & $nr) ; close filter
-			Return False
-		EndIf
+
+	D3Click("filter_" & $nr) ; Open filter
+	If Not lookForFilter($nr, $entry, 1) Then
+		D3Click("filter_" & $nr) ; close filter
+		Return False
 	EndIf
 
-	If $filterInfo[$nr-1][1] <> $value Then
-		; Click on value
-		$filterInfo[$nr-1][1] = $value
-		D3Click("filtervalue_" & $nr)
-		D3Send("{BACKSPACE 3}")
-		D3Send($value)
-	EndIf
+	; Click on value
+	D3Click("filtervalue_" & $nr)
+	D3Send("{BACKSPACE 3}")
+	D3Send($value)
 	Return True
 EndFunc
 
 Func ResetFilter($nr)
-	$filterInfo[$nr-1][0] = ""
-	$filterInfo[$nr-1][1] = 0
 	D3Click("filter_" & $nr) ; Open filter
 	D3Sleep(200) ; wait for filter to open
 	D3Scroll("filter_" & $nr, "up", 30)
@@ -81,6 +66,7 @@ Func Buy($nr)
 	D3Click("firstitem", $nr, 1, false, "itemdiff")
 	D3Click("buyout")
 	debug("Buying " & $nr)
+	If Not CheckRun() Then Return False
 	d3sleep(2000)
 	D3Click("accept_buyout")
 	d3sleep(1000)
@@ -93,6 +79,7 @@ Func Bid($nr)
 	D3Click("firstitem", $nr, 1, false, "itemdiff")
 	D3Click("bid")
 	debug("Bidding " & $nr)
+	If Not CheckRun() Then Return False
 	d3sleep(2000)
 	D3Click("accept_buyout")
 	d3sleep(1000)
@@ -123,4 +110,11 @@ Func Resell($itemId, $bid, $buyout)
 	D3Click("firstitem_stash")
 	SetResellPrice($bid, $buyout)
 	D3Click("createauction")
+EndFunc
+
+Func SetResellPrice($bid, $buyout)
+	D3Click("startingprice")
+	If $bid > -1 Then D3Send($bid)
+	D3Click("buyoutprice")
+	If $buyout > -1 Then D3Send($buyout)
 EndFunc

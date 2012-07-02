@@ -88,10 +88,12 @@ Func GetID($section, $key)
 EndFunc
 
 Func StartIt()
-	$start = Not $start
-	If $start Then
-		Reset(2)
+	If $g_runlevel == 2 Then
+		$g_runlevel = 0
+	Else
+		$g_runlevel = 2
 	EndIf
+
 	If $g_querycount > 0 Then
 		$seconds = TimerDiff($g_starttimer)/1000
 		$minutes = $seconds / 60
@@ -106,23 +108,31 @@ Func StartIt()
 EndFunc
 
 Func startup()
-	Global $checkBid = 0
-	Global $checkBuyout = 0
-	Global $realtimepurchase = false
-	Global $knownItems[1][5]
-	Global $filterInfo[3][2]
+	Global $debugOut = false
+	Global $g_searchIdx = 0
+	Global $g_maxSearchIdx = 0
+	Global $g_socketSearch = false
+	Global $g_itemsKnown = FileRead("socketsearch")
+	Global $g_confPath = "conf/localconf.ini"
+	Global $g_sid = 0
+	Global $g_starttimer = 0
+	Global $g_querycount = 0
+	Global $g_queriesperhour = 0
+	Global $g_wd_lastitemID = 0
+	Global $g_checkBid = 0
+	Global $g_checkBuyout = 0
 	Global $g_searchList[1][7] ; class; itemType, subType, rarity, filterInfo, purchaseInfo
+	Global $g_filter[1][2]
 
 	; lets "login" first
 	connect()
 
-	Global $start = false
+	Global $g_runlevel = 0
 
 	; find process and get base adress
 	Global $pid = WinGetProcess("Diablo III")
 	Global $mem = _MemoryOpen($pid)
-	$module = "Diablo III.exe"
-	Global $baseadd = _MemoryModuleGetBaseAddress($pid, $module)
+	Global $baseadd = _MemoryModuleGetBaseAddress($pid, "Diablo III.exe")
 
 	AdlibRegister("Watchdog", 100)
 EndFunc
@@ -134,11 +144,10 @@ EndFunc
 Func lookForFilter($nr, $entry, $center = 0)
 	For $x = 0 To 10
 		$tmpEntry = $entry
-		If $entry == "Empty Sockets" Then $tmpEntry = "Has Sockets"
+		If $entry == "EmptySockets" Then $tmpEntry = "HasSockets"
 		$position = LookFor($tmpEntry,"filterwindow",1)
 		If Not @Error Then
 			D3Click($position)
-			$filterInfo[$nr-1][0] = $entry
 			Return True
 		EndIf
 		D3Scroll("filter_" & $nr, "down", 5)
@@ -160,11 +169,16 @@ Func LookFor($img, $window, $center = 0)
 EndFunc
 
 Func lookForSocket($nr, $id)
-	If StringInStr($g_socketKnown, $id & ",") Then Return False ; we already know that item no need to scan
-	$g_socketKnown &= $id & ","
 	D3Move("firstitem", $nr, 1, false, "itemdiff")
 	D3sleep(50)
 	LookFor("EmptySocket", "socketsearch")
 	If Not @Error Then Return True
+	Return False
+EndFunc
+
+Func CheckRun($lowerRunLevel = false)
+	If $lowerRunLevel And $g_runlevel == 1 Then $g_runlevel = 0
+	If D3Click("errormsg", -1, 1, true) Then Return False
+	If $g_runlevel >= 1 Then Return True
 	Return False
 EndFunc
