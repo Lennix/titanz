@@ -70,6 +70,15 @@ Global $diffPosition[4]
 Global $combo_amount = 49
 Global $filterlist_combo[$combo_amount]
 
+Func setstatus($status)
+	GUICtrlSetData($g_status,$status)
+EndFunc
+
+Func setconsole($message)
+	$message = @hour & ":" & @MIN & ":" & @SEC & " :" & $message
+	GUICtrlSetData($g_console,$message)
+EndFunc
+
 ;Convert Pref to localconf
 Func ConvertPreftoLocalconf($point)
 	$datei = FileOpen(@MyDocumentsDir & "\Diablo III\D3Prefs.txt")

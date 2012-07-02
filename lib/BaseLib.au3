@@ -2,7 +2,7 @@ Func debug($string, $priority = 0)
 	If $priority == 1 And Not $debugOut Then Return $string
 	ConsoleWrite($string & @CRLF)
 	$g_console_data &= $string & @CRLF
-	GUICtrlSetData($g_console,$g_console_data)
+	setconsole($g_console_data)
 	Return $string
 EndFunc
 
