@@ -65,7 +65,7 @@ EndFunc
 Func Buy($nr)
 	D3Click("firstitem", $nr, 1, false, "itemdiff")
 	D3Click("buyout")
-	debug("Buying " & $nr)
+	setconsole("Buying item nr" & $nr)
 	If Not CheckRun() Then Return False
 	d3sleep(2000)
 	D3Click("accept_buyout")
@@ -78,7 +78,7 @@ EndFunc
 Func Bid($nr)
 	D3Click("firstitem", $nr, 1, false, "itemdiff")
 	D3Click("bid")
-	debug("Bidding " & $nr)
+	setconsole("Bidding on item nr" & $nr)
 	If Not CheckRun() Then Return False
 	d3sleep(2000)
 	D3Click("accept_buyout")

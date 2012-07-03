@@ -1,8 +1,6 @@
 Func debug($string, $priority = 0)
 	If $priority == 1 And Not $debugOut Then Return $string
 	ConsoleWrite($string & @CRLF)
-	$g_console_data &= $string & @CRLF
-	setconsole($g_console_data)
 	Return $string
 EndFunc
 
@@ -92,8 +90,10 @@ EndFunc
 Func StartIt()
 	If $g_runlevel == 2 Then
 		$g_runlevel = 0
+		setconsole("Stopped", "Stopped")
 	Else
 		$g_runlevel = 2
+		setconsole("Started", "Running")
 	EndIf
 
 	If $g_querycount > 0 Then

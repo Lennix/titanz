@@ -70,15 +70,6 @@ Global $diffPosition[4]
 Global $combo_amount = 49
 Global $filterlist_combo[$combo_amount]
 
-Func setstatus($status)
-	GUICtrlSetData($g_status,$status)
-EndFunc
-
-Func setconsole($message)
-	$message = @hour & ":" & @MIN & ":" & @SEC & " :" & $message
-	GUICtrlSetData($g_console,$message)
-EndFunc
-
 ;Convert Pref to localconf
 Func ConvertPreftoLocalconf($point)
 	$datei = FileOpen(@MyDocumentsDir & "\Diablo III\D3Prefs.txt")
@@ -344,7 +335,7 @@ Func readyBotGUI()
 	GUICtrlSetColor($labelstatus, $color_green)
 	GUICtrlSetBkColor(-1,-2)
 	$g_status = GUICtrlCreateLabel($g_status_data, 140, 20,40,20)
-	GUICtrlSetColor($g_status, $color_green)	
+	GUICtrlSetColor($g_status, $color_green)
 	GUICtrlSetBkColor(-1,-2)
 	;GUICtrlSetBkColor(-1,-2)
 	;$f5 = GUICtrlCreateLabel("push F5  to start", 90, 80)
@@ -386,7 +377,7 @@ Func GUIcheck($msg)
 		Case $login
 			login()
 
-		Case $GUI_EVENT_CLOSE				;0x002A052A,0x001B02E0			
+		Case $GUI_EVENT_CLOSE				;0x002A052A,0x001B02E0
 			If $msg[1] = $main Then
 				Exit
 			Else
@@ -612,4 +603,16 @@ Func quit()
 	FileDelete("socketsearch")
 	FileWrite("socketsearch",$g_socketKnown)
 	Exit
+EndFunc
+
+Func setstatus($status)
+	GUICtrlSetData($g_status,$status)
+EndFunc
+
+Func setconsole($message, $status = "", $return = "")
+	$message = @hour & ":" & @MIN & ":" & @SEC & " :" & $message
+	$g_console_data = $message & @CRLF & $g_console_data
+	GUICtrlSetData($g_console,$g_console_data)
+	If $status <> "" Then setstatus($status)
+	If $return <> "" Then Return $return
 EndFunc

@@ -3,23 +3,27 @@
 Global $domain = "http://d3ahbot.com/"
 
 Func connect()
-	debug("Connecting to backend")
+	setconsole("Connecting to backend")
 	; first login and get sessionID
 	$hRequest = iGet("login", "username=lennix&password=fa79010cf00be721e94e8d804c490f9b0658d5c7f69c0337dbdb4248dcfa3c9f")
 	If $hRequest[1][1] == "success" Then
-		setstatus("success")
 		$g_sid = $hRequest[2][1]
+		setconsole("Successfully connected to backend")
 		; load itemList
-		loadSearchList()
+		If loadSearchList() Then
+			setconsole("Successfully loaded item list", "Connected")
+		Else
+			setconsole("Error loading item list", "Error")
+		EndIf
 	Else
-		debug("Failed to authenticate with backend")
+		setconsole("Failed to authenticate with backend", "Error")
 	EndIf
 
 EndFunc
 
 Func loadSearchList()
 	$input = iGet("listItems", "sid=" & $g_sid)
-	if @Error Then Return debug("Error getting item list from backend!")
+	if @Error Then Return setconsole("Error getting item list from backend!", "Error", False)
 	$input = $input[2][1]
 	$search = StringSplit($input, "|") ; main delimiter
 	If @Error Then Return False
@@ -42,6 +46,7 @@ Func loadSearchList()
 		If @Error Then ContinueLoop
 		addToSearchList($class, $itemType, $subType, $rarity, $filter, $purchase)
 	Next
+	Return True
 EndFunc
 
 Func iGet($action, $params = "")

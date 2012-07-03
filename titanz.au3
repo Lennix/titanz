@@ -27,7 +27,10 @@ While 1
 	If CheckRun(True) then
 		$g_searchIdx += 1
 		ReloadSearchList() ; we will reload the circle every time
-		If $g_searchIdx > $g_maxSearchIdx Then $g_searchIdx = 1
+		If $g_searchIdx > $g_maxSearchIdx Then
+			setconsole("Finished cycle. Current queries/h: " & Round($g_queriesperhour,2))
+			$g_searchIdx = 1
+		EndIf
 		Search($g_searchIdx)
 	EndIf
 	D3sleep(25)
