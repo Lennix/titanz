@@ -610,7 +610,7 @@ Func setstatus($status)
 EndFunc
 
 Func setconsole($message, $status = "", $return = "")
-	$message = @hour & ":" & @MIN & ":" & @SEC & " :" & $message
+	$message = @hour & ":" & @MIN & ":" & @SEC & ": " & $message
 	$g_console_data = $message & @CRLF & $g_console_data
 	GUICtrlSetData($g_console,$g_console_data)
 	If $status <> "" Then setstatus($status)

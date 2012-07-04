@@ -90,14 +90,13 @@ Func ScanPages()
 EndFunc
 
 Func GetData()
-	Dim $info[10][2]
+	Dim $info[11]
 	For $i = 0 To 10 ; All items
 		$auction = GetAuctionData($i)
 		If @Error Then ContinueLoop
 		$item = GetItemData($i)
 		If @Error Then ContinueLoop
-		$info[$i][0] = $auction
-		$Info[$i][1] = $item
+		$info[$i] = MergeData($auction, $item)
 		If Not CheckItem($auction, $item, $i) Then Return False
 	Next
 	SaveToDB($info)
@@ -172,6 +171,8 @@ Func GetItemData($nr)
 	D3Move("firstitem", $nr, 1, false, "itemdiff")
 	D3Sleep(50)
 
+	$itemBase = 0x194DB000
+
 	Dim $return[5]
 	Local $offsets[5] = [0, 4, 12, 8, 20]
 
@@ -188,14 +189,14 @@ Func GetItemData($nr)
 	If @Error Then Return SetError(1)
 	$return[0] = ParseStats($itemStats)
 
-	$return[1] = _MemoryRead(0x1BEE334C, $mem, "char[10]") ; Armor / DPS
+	$return[1] = _MemoryRead($itemBase + 0x34C, $mem, "char[10]") ; Armor / DPS
 	Dim $socketInfo[3]
-	$socketInfo[0] = StringTrimLeft(_MemoryRead(0x1BEE348C, $mem, "char[72]"), 14)
-	$socketInfo[1] = StringTrimLeft(_MemoryRead(0x1BEE34DC, $mem, "char[72]"), 14)
-	$socketInfo[2] = StringTrimLeft(_MemoryRead(0x1BEE352C, $mem, "char[72]"), 14)
+	$socketInfo[0] = StringTrimRight(StringTrimLeft(_MemoryRead($itemBase + 0x48C, $mem, "char[72]"), 14),1)
+	$socketInfo[1] = StringTrimRight(StringTrimLeft(_MemoryRead($itemBase + 0x4DC, $mem, "char[72]"), 14),1)
+	$socketInfo[2] = StringTrimRight(StringTrimLeft(_MemoryRead($itemBase + 0x52C, $mem, "char[72]"), 14),1)
 	$return[2] = $socketInfo ; Socket
-	$return[3] = StringTrimLeft(_MemoryRead(0x1BEE36BC, $mem, "char[14]"), 12) ; Item Level
-	$itemType = _StringBetween(_MemoryRead(0x1BEE3324, $mem, "char[64]"), "}", "{") ; Item type
+	$return[3] = StringTrimLeft(_MemoryRead($itemBase + 0x6BC, $mem, "char[14]"), 12) ; Item Level
+	$itemType = _StringBetween(_MemoryRead($itemBase + 0x324, $mem, "char[64]"), "}", "{") ; Item type
 	If @Error Then Return SetError(1)
 	$return[4] = $itemType[0]
 
@@ -223,6 +224,23 @@ Func ParseStats($stats)
 	Return $parsed
 EndFunc
 
+Func MergeData($auction, $item)
+	Dim $return[UBound($auction)+UBound($item)]
+	For $i = 0 To Ubound($auction)-1
+		$return[$i] = $auction[$i]
+	Next
+	$baseInfo = $item[0]
+	Dim $tmpInfo[UBound($baseInfo)*2]
+	For $i = 0 To UBound($baseInfo)-1 Step 2
+		$tmpInfo[$i] = $baseInfo[$i][0]
+		$tmpInfo[$i+1] = $baseInfo[$i][0]
+	Next
+	For $i = 1 To UBound($item)-1
+		$return[UBound($auction)+$i] = $item[$i]
+	Next
+	Return $return
+EndFunc
+
 ; This function is called periodically
 Func Watchdog()
 	$item = GetAuctionData(0)
@@ -237,5 +255,5 @@ Func Watchdog()
 EndFunc
 
 Func SaveToDB($info)
-	iGet("saveToDB","sid=" & $g_sid & "&info=" & $info)
+	iGet("saveToDB",debug("info=" & _JSONEncode($info)))
 EndFunc
