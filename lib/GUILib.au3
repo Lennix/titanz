@@ -33,7 +33,7 @@ Global $configComplete = False
 Global $needConfigCheck = False
 Global $runtime = False
 Global $logedin = True
-Global $ctrlmenu[3]
+Global $ctrlmenu[6]
 Global $helpmenu[3]
 Global $okbutton
 Global $login
@@ -45,6 +45,7 @@ Global $edit = 0
 Global $picedit = 0
 Global $g_console
 Global $g_console_data
+Global $labelstatus
 Global $g_status
 Global $g_status_data
 Local $combo = 0
@@ -287,14 +288,24 @@ Func createGUI()
 	$main = GUICreate("Titanz ©2012 Lennix, Zero, Neltor", 400, 300, -1, -1, -1, $WS_EX_TOPMOST)
 	$helpmenu[2] = GUICtrlCreateLabel("",268,0,132,70)
 	GUICtrlSetCursor($helpmenu[2],0)
+	GUICtrlSetTip($helpmenu[2],"Visit our Homepage")
 	$ctrlmenu[1] = GUICtrlCreateLabel("",278,93,110,24)
 	GUICtrlSetCursor($ctrlmenu[1],0)
+	GUICtrlSetTip($ctrlmenu[1],"If your Localconf isn't working." & @CRLF & "Use this function to manually set the coordinates!")
 	$ctrlmenu[2] = GUICtrlCreateLabel("",278,124,110,24)
 	GUICtrlSetCursor($ctrlmenu[2],0)
+	GUICtrlSetTip($ctrlmenu[2],"If the Bot can't find the images." & @CRLF & "Use this function to take the pictures manually!")
 	GUICtrlCreatePic("bg.jpg", 0, 0, 400, 300)
 	GUICtrlSetState(-1,$GUI_DISABLE)
-	$g_console = GUICtrlCreateEdit($g_console_data,0,200,260,100,BitOR($ES_AUTOVSCROLL, $WS_VSCROLL,$ES_READONLY))
-	;GUICtrlSetBkColor($edit,-2)
+	$ctrlmenu[3] = GUICtrlCreateLabel("",0,283,400,17)
+	GUICtrlSetTip($ctrlmenu[3],"Show Console")
+	GUICtrlSetCursor($ctrlmenu[3],0)
+	GUICtrlSetBkColor(-1,-2)
+	$ctrlmenu[5] = GUICtrlCreatePic("console_hide.jpg", 0, 183, 400, 17)
+	GUICtrlSetState($ctrlmenu[5],$GUI_DISABLE)
+	$g_console = GUICtrlCreateEdit($g_console_data,0,200,400,100,BitOR($ES_AUTOVSCROLL, $WS_VSCROLL,$ES_READONLY))
+	GUICtrlSetState($g_console,$GUI_HIDE)
+	GUICtrlSetState($ctrlmenu[5],$GUI_HIDE)
 EndFunc
 
 ;login eingaben in Global username und password gespeichert
@@ -308,9 +319,6 @@ Func loginBotGUI()
 	GUICtrlSetBkColor(-1,-2)
 	$username = GUICtrlCreateInput("username",10,40,200)
 	$password = GUICtrlCreateInput("password",10,65,200,20,$ES_PASSWORD)
-	;$further = GUICtrlCreateLabel("For further information go to www.d3ahbot.com", 10, 150)
-	;GUICtrlSetColor($further, $color_white)
-	;GUICtrlSetBkColor(-1,-2)
 	$login = GUICtrlCreateButton("login",10,100,50,25)
 	GUISetState(@SW_SHOW)
 
@@ -362,6 +370,24 @@ Func GUIcheck($msg)
 		Case $ctrlmenu[2]
 			GuiCreateImages()
 
+		Case $ctrlmenu[3]
+			GUICtrlSetState($g_console,$GUI_Show)
+			GUICtrlSetState($ctrlmenu[5],$GUI_Show)
+			$ctrlmenu[4] = GUICtrlCreateLabel("",0,183,400,17)
+			GUICtrlSetCursor($ctrlmenu[4],0)
+			GUICtrlSetTip($ctrlmenu[4],"Hide Console")
+			GUICtrlSetBkColor(-1,-2)
+			GUICtrlDelete($ctrlmenu[3])
+
+		Case $ctrlmenu[4]
+			GUICtrlSetState($g_console,$GUI_HIDE)
+			GUICtrlSetState($ctrlmenu[5],$GUI_HIDE)
+			GUICtrlDelete($ctrlmenu[4])
+			$ctrlmenu[3] = GUICtrlCreateLabel("",0,283,400,17)
+			GUICtrlSetTip($ctrlmenu[3],"Show Console")
+			GUICtrlSetCursor($ctrlmenu[3],0)
+			GUICtrlSetBkColor(-1,-2)
+
 		Case $helpmenu[1]
 			GuiCredits()
 
@@ -411,10 +437,19 @@ Func GuiCreateImages()
 	;GUIDelete()
 	;createGUI()
 	$counter = 0
-	;$data = FileOpen($g_settings)
 
-	$combo = GUICtrlCreateCombo("None",10,10,200,10)
+	;$data = FileOpen($g_settings)
+	GUICtrlSetState($g_status,$GUI_HIDE)
+	GUICtrlSetState($labelstatus,$GUI_HIDE)
+	$combo = GUICtrlCreateCombo("None",10,125,150,10)
  	$entry_1 = IniRead($g_settings,"piclist","pic",1)
+	GUICtrlCreateLabel("Press F10 to set the top-left coordinates", 5, 20)
+	GUICtrlSetColor(-1, $color_white)
+	GUICtrlSetBkColor(-1,-2)
+	GUICtrlCreateLabel("of the image you want to create", 5, 30)
+	GUICtrlSetColor(-1, $color_white)
+	GUICtrlSetBkColor(-1,-2)
+
 
 	$entry = StringSplit($entry_1,",")
 
@@ -427,7 +462,7 @@ Func GuiCreateImages()
 		$counter += 1
 	WEnd
 
-	$picbutton = GUICtrlCreateButton("Speichern",75,75,50,20)
+	$picbutton = GUICtrlCreateButton("Speichern",10,150,100,20)
 	GUICtrlSetState($combo,$GUI_DISABLE)
 
 	GUISetState(@SW_SHOW)
@@ -610,7 +645,7 @@ Func setstatus($status)
 EndFunc
 
 Func setconsole($message, $status = "", $return = "")
-	$message = @hour & ":" & @MIN & ":" & @SEC & ": " & $message
+	$message = @hour & ":" & @MIN & ":" & @SEC & " -> " & $message
 	$g_console_data = $message & @CRLF & $g_console_data
 	GUICtrlSetData($g_console,$g_console_data)
 	If $status <> "" Then setstatus($status)
