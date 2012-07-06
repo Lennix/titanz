@@ -12,6 +12,9 @@
 #include "lib/ComLib.au3"
 #include "lib/SearchLib.au3"
 
+Global $debugOut = false
+Global $g_testMode = false
+
 HotKeySet("{F7}","quit")
 HotKeySet("{F8}", "StopIt")
 HotKeySet("{F9}", "StartIt")
@@ -28,6 +31,7 @@ While 1
 		$g_searchIdx += 1
 		ReloadSearchList() ; we will reload the circle every time
 		If $g_searchIdx > $g_maxSearchIdx Then
+			$g_targetQPH = $g_baseQPH + Random(0, 50, 1)
 			setconsole("Finished cycle. Current queries/h: " & Round($g_queriesperhour,2))
 			$g_searchIdx = 1
 		EndIf

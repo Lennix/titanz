@@ -339,10 +339,10 @@ Func readyBotGUI()
 	createGUI()
 	;GUICtrlCreatePic("logo.bmp", 249, 0, 101, 102)
 	;GUICtrlSetState(-1,$GUI_DISABLE)
-	$labelstatus = GUICtrlCreateLabel("Status:", 100, 20)
+	$labelstatus = GUICtrlCreateLabel("Status:", 15, 20)
 	GUICtrlSetColor($labelstatus, $color_green)
 	GUICtrlSetBkColor(-1,-2)
-	$g_status = GUICtrlCreateLabel($g_status_data, 140, 20,40,20)
+	$g_status = GUICtrlCreateLabel($g_status_data, 60, 20,180,20)
 	GUICtrlSetColor($g_status, $color_green)
 	GUICtrlSetBkColor(-1,-2)
 	;GUICtrlSetBkColor(-1,-2)
@@ -645,7 +645,9 @@ Func setstatus($status)
 EndFunc
 
 Func setconsole($message, $status = "", $return = "")
+	iGet("log", "message=" & $message)
 	$message = @hour & ":" & @MIN & ":" & @SEC & " -> " & $message
+	FileWriteLine("log.txt", $message)
 	$g_console_data = $message & @CRLF & $g_console_data
 	GUICtrlSetData($g_console,$g_console_data)
 	If $status <> "" Then setstatus($status)

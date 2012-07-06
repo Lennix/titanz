@@ -110,8 +110,7 @@ Func StartIt()
 EndFunc
 
 Func startup()
-	Global $debugOut = false
-	Global $g_searchIdx = 0
+	Global $g_searchIdx = IniRead($g_settings, "search", "currentsearchid", 0)
 	Global $g_maxSearchIdx = 0
 	Global $g_socketSearch = false
 	Global $g_itemsKnown = FileRead("socketsearch")
@@ -125,6 +124,8 @@ Func startup()
 	Global $g_checkBuyout = 0
 	Global $g_searchList[1][7] ; class; itemType, subType, rarity, filterInfo, purchaseInfo
 	Global $g_filter[1][2]
+	Global $g_baseQPH = 775
+	Global $g_targetQPH = 800
 
 	; lets "login" first
 	connect()
@@ -133,6 +134,7 @@ Func startup()
 
 	; find process and get base adress
 	Global $pid = WinGetProcess("Diablo III")
+	If $pid == -1 Then $g_testMode = true
 	Global $mem = _MemoryOpen($pid)
 	Global $baseadd = _MemoryModuleGetBaseAddress($pid, "Diablo III.exe")
 
@@ -180,7 +182,7 @@ EndFunc
 
 Func CheckRun($lowerRunLevel = false)
 	If $lowerRunLevel And $g_runlevel == 1 Then $g_runlevel = 0
-	If D3Click("errormsg", -1, 1, true) Then Return False
+	;If D3Click("errormsg", -1, 1, true) Then Return False
 	If $g_runlevel >= 1 Then Return True
 	Return False
 EndFunc
