@@ -20,36 +20,37 @@ Const $color_green = 0x008000
 Const $color_white = 0xffffff
 Const $color_yellow = 0x808000
 
-Global $configProperties[$configSize] = ["search", "price", "buyout", "accept_buyout", "item_type", "item_subtype", "rarity", "filter_1", "filtervalue_1", "filter_2", "filtervalue_2", "filter_3", "filtervalue_3", "filter_dropdownwindow_entry1", "filter_dropdownwindow_entry2", "firstitem", "seconditem", "next_page", "prev_page", "filterwindow", "socketsearch", "bid"]
-Global $configDiffProperties[$configDiffEntries] = ["filterentrydiff", "entrydiff", "itemdiff"]
-Global $Pref =@ScriptDir & "/conf/pref.ini"
+Local $configProperties[$configSize] = [	"search", "price", "buyout", "accept_buyout","item_type", "item_subtype", "rarity", "filter_1","filtervalue_1", "filter_2", "filtervalue_2", "filter_3","filtervalue_3", "filter_dropdownwindow_entry1","filter_dropdownwindow_entry2","firstitem", "seconditem", "next_page", "prev_page", "filterwindow", "socketsearch", "bid"]
+local $configProperties_descriptions[24] = ["place the cursor over the search button","place the cursor over the max buyout price field","place the cursor over the buyout button","select an item click on byout and place the cursor over the accept buyout button","place the cursor over the expand button of the item type field","place the cursor over the expand button of the item subtype field","place the cursor over the expand button of the rarity field","place the cursor over the expand button of the first filter entry","place the cursor over the value field of the first filter","place the cursor over the expand button of the second filter entry","place the cursor over the value field of the second filter","place the cursor over the expand button of the third filter entry","place the cursor over the value field of the third filter","place the cursor over the first entry of any expanded filter","place the cursor over the second entry of any expanded filter","place the cursor over the first item","place the cursor over the second item","place the cursor over the next page button","place the cursor over the previous page button","place the cursor over the left upper corner of the first filter window","place the cursor over the right lower corner of the third expanded filter window" & @CRLF & "remember that not every filter window has the same size depending on the item type you chose, theirfore leave some space to the left to get all window sizes","hover over the first item with sockets, now place the cursor over the left upper corner of the top socket","hover over the last item with sockets, now place the cursor over the right lower corner of the bottom socket","place the cursor over the bid button"]
+Local $configDiffProperties[$configDiffEntries] = ["filterentrydiff", "entrydiff", "itemdiff"]
+Local $Pref =@ScriptDir & "/conf/pref.ini"
 Global $g_socketKnown = FileRead("socketsearch")
 Global $g_confPath = @ScriptDir & "/conf/localconf.ini"
 Global $g_settings = @ScriptDir & "/conf/settings.ini"
 Local $DLLHashes = DllOpen(@ScriptDir & "/UDF/hashes.dll")
-Global $configProcessPointLabel = ""
+Local $configProcessPointLabel = ""
 
 Global $configComplete = False
 Global $needConfigCheck = False
 Global $runtime = False
 Global $logedin = True
-Global $ctrlmenu[6]
+Local $ctrlmenu[6]
 Local $back
-Global $helpmenu[3]
-Global $okbutton
-Global $login
-Global $username
-Global $password
+Local $helpmenu[3]
+Local $okbutton
+Local $login
+Local $username
+Local $password
 Global $msg
-Global $edit_content
-Global $picedit = 0
+Local $edit_content
+Local $picedit = 0
 Global $g_console
 Global $g_console_data
-Global $labelstatus
-Global $label_conf_entry = 0,$label_conf_entry_x,$label_conf_entry_y,$label_conf_entry_color
-Global $label_conf_entry_left,$label_conf_entry_top,$label_conf_entry_right,$label_conf_entry_bottom
+Local $labelstatus
+Local $label_conf_entry = 0,$label_conf_entry_x,$label_conf_entry_y,$label_conf_entry_color
+Local $label_conf_entry_left,$label_conf_entry_top,$label_conf_entry_right,$label_conf_entry_bottom,$labelstatus_description,$labelReady
 Global $g_status
-Global $g_status_data
+Global $g_status_data = 0
 Local $combo = 0
 Local $pos_time = 0
 Local $pos_1
@@ -62,16 +63,17 @@ Local $filterwindow = False
 Local $socketsearch = False
 Local $main
 
-Global $configProcessPoint = 0
-Global $configCheckPoint = 0
-Global $diffPoint = 0
-Global $width_faktor
-Global $height_faktor
-Global $configEndPoint = $configSize
-Global $diffPosition[4]
 
-Global $combo_amount = 49
-Global $filterlist_combo[$combo_amount]
+Local $configProcessPoint = 0
+Local $configCheckPoint = 0
+Local $diffPoint = 0
+Local $width_faktor
+Local $height_faktor
+Local $configEndPoint = $configSize
+Local $diffPosition[4]
+
+Local $combo_amount = 49
+Local $filterlist_combo[$combo_amount]
 
 ;Convert Pref to localconf
 Func ConvertPreftoLocalconf($point)
@@ -168,12 +170,16 @@ Func WriteConfManually($pos,$color)
 					GUICtrlSetData($label_conf_entry_color,"right = ")
 					GUICtrlSetData($label_conf_entry_left,"bottom = ")
 					GUICtrlSetData($labelstatus,"filterwindow_bottom_right")
+					GUICtrlSetData($labelstatus_description,$configProperties_descriptions[20])
 
 
 				ElseIf $filterwindow = True Then
 					IniWrite($g_confPath, $configProperties[$configProcessPoint], "right", $pos[0])
 					IniWrite($g_confPath, $configProperties[$configProcessPoint], "bottom", $pos[1])
 					$filterwindow = False
+
+					GUICtrlSetData($labelstatus,"socketsearch")
+					GUICtrlSetData($labelstatus_description,$configProperties_descriptions[21])
 
 					GUICtrlSetData($label_conf_entry_color,"right = " & $pos[0])
 					GUICtrlSetData($label_conf_entry_left,"bottom = "& $pos[1])
@@ -196,6 +202,7 @@ Func WriteConfManually($pos,$color)
 					GUICtrlSetData($label_conf_entry_color,"right = ")
 					GUICtrlSetData($label_conf_entry_left,"bottom = ")
 					GUICtrlSetData($labelstatus,"socketsearch_bottom_right")
+					GUICtrlSetData($labelstatus_description,$configProperties_descriptions[22])
 
 				ElseIf $socketsearch = True Then
 					IniWrite($g_confPath, $configProperties[$configProcessPoint], "right", $pos[0])
@@ -204,6 +211,9 @@ Func WriteConfManually($pos,$color)
 
 					GUICtrlSetData($label_conf_entry_color,"right = " & $pos[0])
 					GUICtrlSetData($label_conf_entry_left,"bottom = "& $pos[1])
+
+					GUICtrlSetData($labelstatus,"bid")
+					GUICtrlSetData($labelstatus_description,$configProperties_descriptions[23])
 
 					$configProcessPoint += 1
 				EndIf
@@ -239,6 +249,8 @@ Func WriteConfManually($pos,$color)
 				GUICtrlSetData($label_conf_entry_bottom,"itemdiff = " & Round($itemdiff_2 - $itemdiff_1))
 				$label_conf_entry = 0
 				GUICtrlSetData($labelReady,"Manual overwrite completed")
+				GUICtrlSetData($labelstatus,"")
+				GUICtrlSetData($labelstatus_description,"")
 
 			Case Else
 				IniWrite($g_confPath, $configProperties[$configProcessPoint], "x", $pos[0])
@@ -250,6 +262,8 @@ Func WriteConfManually($pos,$color)
 				GUICtrlSetData($label_conf_entry_y,"y = "& $pos[1])
 				GUICtrlSetData($label_conf_entry_color,"color = " & $color)
 				GUICtrlSetData($labelstatus,$configProperties[$configProcessPoint+1])
+				GUICtrlSetData($labelstatus_description,$configProperties_descriptions[$configProcessPoint+1])
+
 				$configProcessPoint += 1
 		EndSwitch
 
@@ -433,6 +447,9 @@ Func readyBotGUI($msg)
 	GUICtrlSetBkColor(-1,-2)
 	GUICtrlSetColor($g_status, $color_green)
 
+	If $g_status_data <> 0 Then
+		GUICtrlSetData($g_status,$g_status_data)
+	EndIf
 
 	;GUICtrlSetBkColor(-1,-2)
 	;$f5 = GUICtrlCreateLabel("push F5  to start", 90, 80)
@@ -461,11 +478,13 @@ Func check($pos,$color)
 		If $pos_time = 1 Then
 			$pos_2 = $pos
 			takepic($pos_1,$pos_2)
+			GUICtrlSetData($labelstatus,"Press F10 to set the top-left coordinates")
 			WinActivate("Diablo III")
 
 		ElseIf $pos_time = 0 Then
 			$pos_1 = $pos
 			$pos_time = 1
+			GUICtrlSetData($labelstatus,"Press F10 to set the right-bottom coordinates")
 			WinActivate("Titanz ©2012 Lennix, Zero, Neltor")
 		EndIf
 	EndIf
@@ -490,10 +509,10 @@ Func GuiCreateImages()
 	GUICtrlSetCursor($back,0)
 	GUICtrlSetTip($back,"Get back to the start menu!")
 
-	$combo = GUICtrlCreateCombo("None",10,125,150,10)
+	$combo = GUICtrlCreateCombo("None",10,50,150,10)
  	$entry_1 = IniRead($g_settings,"piclist","pic",1)
 
-	GUICtrlCreateLabel("Press F10 to set the top-left coordinates", 5, 20)
+	$labelstatus = GUICtrlCreateLabel("Press F10 to set the top-left coordinates", 5, 20,250,12)
 	GUICtrlSetColor(-1, $color_white)
 	GUICtrlSetBkColor(-1,-2)
 
@@ -509,7 +528,7 @@ Func GuiCreateImages()
 		$counter += 1
 	WEnd
 
-	$picbutton = GUICtrlCreateButton("Speichern",10,150,100,20)
+	$picbutton = GUICtrlCreateButton("Speichern",10,80,100,20)
 	GUICtrlSetState($combo,$GUI_DISABLE)
 
 	WinActivate("Diablo III")
@@ -531,7 +550,7 @@ Func Guicreatelocalconfinfo()
 	GUICtrlSetCursor($back,0)
 
 	GUICtrlSetState($ctrlmenu[1],$GUI_DISABLE)
-	$okbutton = GUICtrlCreateButton("OK",120,50,50)
+	$okbutton = GUICtrlCreateButton("OK",5,50,50)
 
 EndFunc
 
@@ -583,9 +602,6 @@ Func _Hashes($sValue, $sHash = 'MD5', $DLLHashes = 'hashes.dll', $sFile = 0)
     SetError(1,0,0)
 EndFunc
 
-
-
-
 Func SafeImage()
 	$test = GUICtrlRead($combo)
 
@@ -622,11 +638,15 @@ Func GuiCreateLocalconf()
 
 	GUICtrlSetState($ctrlmenu[1],$GUI_DISABLE)
 
-	$labelReady = GUICtrlCreateLabel("Press F10 to get the coordinates of the point", 120, 20,150,150)
+	$labelReady = GUICtrlCreateLabel("Press F10 to get the coordinates of the point", 100, 50,150,150)
 	GUICtrlSetColor($labelReady, $color_green)
 	GUICtrlSetBkColor(-1,-2)
 
-	$labelstatus = GUICtrlCreateLabel("search", 120, 50,150,150)
+	$labelstatus = GUICtrlCreateLabel("search", 110, 85,150,150)
+	GUICtrlSetColor(-1, $color_green)
+	GUICtrlSetBkColor(-1,-2)
+
+	$labelstatus_description = GUICtrlCreateLabel($configProperties_descriptions[0],100,110,150,150)
 	GUICtrlSetColor(-1, $color_white)
 	GUICtrlSetBkColor(-1,-2)
 
@@ -665,10 +685,7 @@ Func GuiCreateLocalconf()
 	GUICtrlSetColor(-1, $color_white)
 	GUICtrlSetState($label_conf_entry_bottom,$GUI_HIDE)
 	GUICtrlSetBkColor(-1,-2)
-
 EndFunc
-
-
 
 Func GuiCredits()
 EndFunc
@@ -729,6 +746,7 @@ EndFunc
 
 Func setstatus($status)
 	GUICtrlSetData($g_status,$status)
+	$g_status_data = $status
 EndFunc
 
 Func setconsole($message, $status = "", $return = "")
