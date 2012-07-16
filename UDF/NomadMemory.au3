@@ -637,7 +637,7 @@ EndFunc
 ; Author(s):        Luzifer42
 ; Note(s):          The default scan range will be completed in less than one second.
 ;===============================================================================?===
-Func _MemoryScan($ah_Handle, $pattern, $after=false, $iv_addrStart=0x00400000, $iv_addrEnd=0X00FFFFFF, $step=51200)
+Func _MemoryScan($ah_Handle, $pattern, $iv_addrStart=0x10000000, $iv_addrEnd=0X2FFFFFFF, $after=false,  $step=51200)
     If Not IsArray($ah_Handle) Then
         SetError(1)
         Return -1
@@ -658,6 +658,22 @@ Func _MemoryScan($ah_Handle, $pattern, $after=false, $iv_addrStart=0x00400000, $
         EndIf
     Next
     Return -1
+EndFunc
+
+Func MemoryScan($ah_handle, $pattern)
+	Dim $pointer[1]
+	$addr = 0x10000000
+	$count = 1
+	While 1
+		$input = _MemoryScan($ah_handle, $pattern, $addr)
+		If @Error Or $input == -1 Then ExitLoop
+		$count += 1
+		ReDim $pointer[$count]
+		$pointer[$count-1] = $input
+		$addr = $input + 0x1
+	WEnd
+	;_ArrayDisplay($pointer)
+	Return $pointer
 EndFunc
 
 #endregion
