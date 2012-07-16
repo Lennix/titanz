@@ -52,7 +52,7 @@ EndFunc
 Func iGet($action, $params = "")
 	$hOpen = _WinHttpOpen()
 	$hConnect = _WinHttpConnect($hOpen, "d3ahbot.com")
-	$hRet = _JSONDecode(debug(_WinHttpSimpleRequest($hConnect, "POST", "index.php?component=backend&action=" & $action, "", $params)))
+	$hRet = _JSONDecode(_WinHttpSimpleRequest($hConnect, "POST", "index.php?component=backend&action=" & $action, "", $params))
 	_WinHttpCloseHandle($hOpen)
 	If Not IsArray($hRet) Then Return SetError(1, 0, False)
 	If $hRet[1][1] == "fail" Then SetError(1)

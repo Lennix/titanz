@@ -59,8 +59,9 @@ EndFunc
 
 Func _Search()
 	; we're going to choose the filter here
-	$count = 1
-	For $i = 0 To Ubound($g_filter) -1
+	$max = UBound($g_filter) -1
+	If $max > 2 Then $max = 2
+	For $i = 0 To $max
 		If Not ChooseFilter($i+1, $g_filter[$i][0], $g_filter[$i][1]) Then Return False
 	Next
 	ScanPages()
@@ -80,8 +81,10 @@ Func ScanPages()
 	Do
 		D3Sleep(25)
 	Until CheckColor("prev_page_grey") Or TimerDiff($timer) > 5000
+	$pagecount = 0
 	While 1
 		If Not GetData() Then ExitLoop
+		$pagecount += 1
 		D3Sleep(1000) ; basesleep of 1 second
 		Do
 			D3Sleep(50)
@@ -93,6 +96,7 @@ Func ScanPages()
 			;If Not CheckColor("prev_page") And Not CheckColor("next_page") Then ExitLoop
 		Until CheckColor("prev_page") Or TimerDiff($timer) > 5000
 	WEnd
+	setconsole("Filter " & $g_searchIdx & " pagecount: " & $pagecount)
 EndFunc
 
 Func GetData()
@@ -127,27 +131,14 @@ Func CheckItem($auction, $item, $nr)
 		If $g_filter[$i][0] == "HasSockets" Then ContinueLoop
 		$found = false
 		If $g_filter[$i][0] == "EmptySockets" Then
-			If lookForSocket($nr, $auction[0]) Then
-				debug("Bid: " & $auction[1] & ", BO: " & $auction[2] & ", Empty socket!")
-				$found = True
-			EndIf
+			If lookForSocket($nr, $auction[0]) Then $found = True
 		Else
 			For $j = 0 To Ubound($stats)-1 Step 2
-				If $stats[$j] == $g_filter[$i][0] Then
-					debug("We are looking for " & $g_filter[$i][0] & " - " & $g_filter[$i][1])
-					debug("And found " & $stats[$j] & " - " & $stats[$j+1])
-					debug("Thats: " & $stats[$j+1] - $g_filter[$i][1])
-					If $stats[$j+1] - $g_filter[$i][1] >= 0 Then
-						$found = True
-						debug("And found it!")
-					EndIf
-				EndIf
+				If $stats[$j] == $g_filter[$i][0] And $stats[$j+1] - $g_filter[$i][1] >= 0 Then $found = True
 			Next
 		EndIf
 		If Not $found Then Return True
 	Next
-
-	debug("Okay, lets buy that shit!")
 
 	If $auction[4] <> 102 Then Return True ; already sold
 
@@ -162,7 +153,7 @@ Func GetAuctionData($nr)
 	Dim $return[5]
 	Local $offsets[5] = [0, 0, 4, 40, 32+280*$nr]
 
-	$basepointer = _MemoryPointerRead($baseadd + 0xFC85B0, $mem, $offsets)
+	$basepointer = _MemoryPointerRead($baseadd + 0xFC75B0, $mem, $offsets)
 	If @Error Then
 		debug("Error reading memory")
 		$g_testMode = true
@@ -193,35 +184,42 @@ Func GetItemData($nr)
 	; first move over the item
 	D3Move("firstitem", $nr, 1, false, "itemdiff")
 	D3Sleep(150)
-
-	$itemBase = 0x25617000
+	$error = False
 
 	Dim $return[5]
-	Local $offsets[5] = [0, 4, 12, 8, 20]
 
-	$itemDesc = _MemoryPointerRead($baseadd + 0xEEA1A8, $mem, $offsets)
+	$return[0] = _MemoryRead($g_baseinfo, $mem, "char[512]") ; Basic Info
+
+	If $g_memoryCheck == $return[0] Then
+		setconsole("Read the same twice!")
+		debug($return[0])
+		d3sleep(10000)
+		Return SetError(1)
+	EndIf
+	$g_memoryCheck = $return[0]
+
+	$itemStats = _StringBetween($return[0], "{c:ff6969ff}", "{/c}")
 	If @Error Then
-		debug("Error reading memory")
-		$g_testMode = true
-		Return SetError(2)
+		setconsole("Couldn't parse base info")
+		debug($return[0])
+		d3sleep(10000)
+		Return SetError(1)
 	EndIf
 
-	$itemDesc = $itemDesc[0]
-
-	$return[0] = _MemoryRead($itemDesc, $mem, "char[512]") ; Basic Info
-	$itemStats = _StringBetween($return[0], "{c:ff6969ff}", "{/c}")
-	If @Error Then Return SetError(1)
 	$return[0] = ParseStats($itemStats)
 
-	$return[1] = _MemoryRead($itemBase + 0x34C, $mem, "char[10]") ; Armor / DPS
+	$return[1] = _MemoryRead($g_itembase + 0xFF0, $mem, "char[10]") ; Armor / DPS
 	Dim $socketInfo[3]
-	$socketInfo[0] = StringTrimRight(StringTrimLeft(_MemoryRead($itemBase + 0x48C, $mem, "char[72]"), 14),1)
-	$socketInfo[1] = StringTrimRight(StringTrimLeft(_MemoryRead($itemBase + 0x4DC, $mem, "char[72]"), 14),1)
-	$socketInfo[2] = StringTrimRight(StringTrimLeft(_MemoryRead($itemBase + 0x52C, $mem, "char[72]"), 14),1)
+	$socketInfo[0] = StringTrimRight(StringTrimLeft(_MemoryRead($g_itembase + 0x1130, $mem, "char[72]"), 14),1)
+	$socketInfo[1] = StringTrimRight(StringTrimLeft(_MemoryRead($g_itembase + 0x1180, $mem, "char[72]"), 14),1)
+	$socketInfo[2] = StringTrimRight(StringTrimLeft(_MemoryRead($g_itembase + 0x11D0, $mem, "char[72]"), 14),1)
 	$return[2] = ParseStats($socketInfo) ; Socket
-	$return[3] = StringTrimLeft(_MemoryRead($itemBase + 0x6BC, $mem, "char[14]"), 12) ; Item Level
-	$itemType = _StringBetween(_MemoryRead($itemBase + 0x324, $mem, "char[64]"), "}", "{") ; Item type
-	If @Error Then Return SetError(1)
+	$return[3] = StringTrimLeft(_MemoryRead($g_itembase + 0x1360, $mem, "char[14]"), 12) ; Item Level
+	$itemType = _StringBetween(_MemoryRead($g_itembase + 0xFC8, $mem, "char[64]"), "}", "{") ; Item type
+	If @Error Then
+		setconsole("Couldn't parse item type")
+		Return SetError(1)
+	EndIf
 	$return[4] = $itemType[0]
 
 	;debug("Basic: " & $return[0] & ", Armor/DPS: " & $return[1] & ", Socket: " & $return[2] & ", ItemLvl: " & $return[3] & ", Type: " & $return[4])
@@ -280,13 +278,13 @@ Func Watchdog()
 EndFunc
 
 Func SendAuctionsToDB($info)
-	$response = iGet("sendAuctions",debug("info=" & _JSONEncode($info)))
+	$response = iGet("sendAuctions","info=" & _JSONEncode($info))
 	If @Error Then Return ""
 	Return $response[2][1]
 EndFunc
 
 Func SendItemsToDB($info)
-	iGet("sendItems",debug("info=" & _JSONEncode($info)))
+	iGet("sendItems","info=" & _JSONEncode($info))
 EndFunc
 
 Func FillTestData()

@@ -12,7 +12,7 @@
 #include "lib/ComLib.au3"
 #include "lib/SearchLib.au3"
 
-Global $debugOut = false
+Global $debugOut = False
 Global $g_testMode = false
 
 HotKeySet("{F7}","quit")

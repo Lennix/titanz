@@ -92,19 +92,11 @@ Func StartIt()
 		$g_runlevel = 0
 		setconsole("Stopped", "Stopped")
 	Else
+		If Not InitializePointer() Then Return False
 		$g_runlevel = 2
 		setconsole("Started", "Running")
 	EndIf
 
-	If $g_querycount > 0 Then
-		$seconds = TimerDiff($g_starttimer)/1000
-		$minutes = $seconds / 60
-		$hours = $minutes / 60
-		Debug("Time: " & Round($seconds) & "s, queries: " & $g_querycount)
-		debug("> " & $g_querycount / $seconds & " queries/s")
-		debug("> " & $g_querycount / $minutes & " queries/m")
-		debug("> " & $g_querycount / $hours & " queries/h")
-	EndIf
 	$g_starttimer = TimerInit()
 	$g_querycount = 0
 EndFunc
@@ -116,7 +108,6 @@ Func startup()
 	Global $g_itemsKnown = FileRead("socketsearch")
 	Global $g_confPath = "conf/localconf.ini"
 	Global $g_sid = 0
-	Global $g_starttimer = 0
 	Global $g_querycount = 0
 	Global $g_queriesperhour = 0
 	Global $g_wd_lastitemID = 0
@@ -127,7 +118,12 @@ Func startup()
 	Global $g_baseQPH = 775
 	Global $g_targetQPH = 800
 
-	; lets "login" first
+	Global $g_memoryCheck = ""
+	Global $g_itembase = 0
+	Global $g_baseinfo = 0
+	Global $g_startTimer = 0
+
+	; lets "login" first 01 F2 E3 F7 05
 	connect()
 
 	Global $g_runlevel = 0
@@ -139,6 +135,8 @@ Func startup()
 	Global $baseadd = _MemoryModuleGetBaseAddress($pid, "Diablo III.exe")
 
 	AdlibRegister("Watchdog", 100)
+
+	$g_starttimer = 0
 EndFunc
 
 Func feierabend()
@@ -185,4 +183,67 @@ Func CheckRun($lowerRunLevel = false)
 	;If D3Click("errormsg", -1, 1, true) Then Return False
 	If $g_runlevel >= 1 Then Return True
 	Return False
+EndFunc
+
+Func AscToHex($String)
+	$return = ""
+	For $i = 1 To StringLen($string)
+		$return &= Hex(Asc(StringMid($string,$i,1)),2)
+	Next
+	Return $return
+EndFunc
+
+Func InitializePointer()
+	$initTimer = TimerInit()
+	; item base
+	$itembasecheck = ""
+	If $g_itembase <> 0 Then $itembasecheck = debug(_MemoryRead($g_itembase, $mem, "char[32]"))
+	If $g_itembase == 0 Or StringLeft($itembasecheck,8) <> "EQUIPPED" Then
+		$g_itembase = _MemoryScan($mem, AscToHex("EQUIPPED")) ; search for "EQUIPPED"
+		If Not @Error Then
+			debug($g_itembase)
+			setconsole("Found item base")
+		Else
+			setconsole("Couldn't find item base", "Error")
+			Return False
+		EndIf
+	EndIf
+
+	; base info
+	If $g_baseinfo == 0 Then $g_baseinfo = "0x" & Hex(IniRead($g_settings, "internal", "baseinfo", 0))
+	$baseinfoCheck = _MemoryRead($g_baseinfo, $mem, "char[512]")
+	If $g_baseinfo == 0 Or StringLeft($baseinfoCheck, 26) <> "{icon:bullet} {c:ff6969ff}" Then
+		$baseinfo1 = MemoryScan($mem, AscToHex(InputBox("Pointer Search", "First Affix - 2 Affixes")))
+		setconsole("Found " & UBound($baseinfo1)-1 & " pointer")
+		$baseinfo2 = MemoryScan($mem, AscToHex(InputBox("Pointer Search", "First Affix - Multiple Affixes")))
+		setconsole("Found " & UBound($baseinfo2)-1 & " pointer")
+		$found = False
+		For $i = 1 To UBound($baseinfo1)-1
+			For $j = 1 To UBound($baseinfo2)-1
+				If $baseinfo1[$i] == $baseinfo2[$j] Then
+					Debug("Baseinfo: " & $baseinfo1[$i])
+					$g_baseinfo = $baseinfo1[$i]
+					$found = True
+				EndIf
+			Next
+		Next
+		If Not $found Then
+			setconsole("Couldn't get baseinfo pointer", "Error")
+			Return False
+		Else
+			setconsole("Found base info")
+			$g_baseinfo -= 0x1A
+			IniWrite($g_settings, "internal", "baseinfo", $g_baseinfo)
+		EndIf
+	EndIf
+	; read again in case pointer changed
+	$baseinfoCheck = _MemoryRead($g_baseinfo, $mem, "char[512]")
+	$itemStats = _StringBetween($baseinfoCheck, "{c:ff6969ff}", "{/c}")
+	If @Error Then
+		setconsole("Couldn't parse base info", "Error")
+		Return False
+	EndIf
+
+	setconsole("Finished initializing after " & Round(TimerDiff($initTimer)/1000,2) & " seconds")
+	Return True
 EndFunc
