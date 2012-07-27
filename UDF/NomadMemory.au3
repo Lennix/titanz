@@ -637,7 +637,7 @@ EndFunc
 ; Author(s):        Luzifer42
 ; Note(s):          The default scan range will be completed in less than one second.
 ;===============================================================================?===
-Func _MemoryScan($ah_Handle, $pattern, $iv_addrStart=0x10000000, $iv_addrEnd=0X2FFFFFFF, $after=false,  $step=51200)
+Func _MemoryScan($ah_Handle, $pattern, $iv_addrStart=0x10000000, $iv_addrEnd=0X34FFFFFF, $after=false,  $step=51200)
     If Not IsArray($ah_Handle) Then
         SetError(1)
         Return -1
